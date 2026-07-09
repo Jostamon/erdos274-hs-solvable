@@ -136,10 +136,8 @@ theorem card_inf_mul_card_map (H K : Subgroup G) :
 omit [Finite G] in
 /-- A coset containing `y` equals the `y`-translate of the subgroup. -/
 lemma smul_set_eq_of_mem {a y : G} {L : Subgroup G}
-    (hy : y ∈ a • (L : Set G)) : a • (L : Set G) = y • (L : Set G) := by
-  obtain ⟨h, hh, hy'⟩ := hy
-  have hy2 : a * h = y := hy'
-  rw [← hy2, ← smul_smul, smul_coe_set hh]
+    (hy : y ∈ a • (L : Set G)) : a • (L : Set G) = y • (L : Set G) :=
+  (leftCoset_eq_iff L).mpr ((mem_leftCoset_iff a).mp hy)
 
 omit [Finite G] in
 /-- Two intersecting cosets intersect in a coset of the intersection. -/
