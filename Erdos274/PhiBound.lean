@@ -154,4 +154,22 @@ theorem sum_totient_biUnion_le {p : ℕ} (hp : p.Prime) (m a : κ → ℕ)
         have := Nat.sum_totient (p ^ A)
         rwa [Nat.divisors_prime_pow hp, Finset.sum_map] at this
 
+/-- Double-counting swap: weighting each `d ∈ D` by the number of indices `b`
+whose finset `E b ⊆ D` contains it equals summing over the `E b`. -/
+theorem sum_mul_card_filter_eq_sum_sum {α β : Type*} [DecidableEq α] [Fintype β]
+    (D : Finset α) (E : β → Finset α) (f : α → ℕ) (hE : ∀ b, E b ⊆ D) :
+    ∑ d ∈ D, f d * (Finset.univ.filter fun b ↦ d ∈ E b).card =
+      ∑ b : β, ∑ d ∈ E b, f d := by
+  have h1 : ∀ d ∈ D, f d * (Finset.univ.filter fun b ↦ d ∈ E b).card =
+      ∑ _b ∈ Finset.univ.filter fun b ↦ d ∈ E b, f d := by
+    intro d _
+    rw [Finset.sum_const, smul_eq_mul, mul_comm]
+  rw [Finset.sum_congr rfl h1]
+  exact Finset.sum_comm' fun d b ↦ by
+    constructor
+    · rintro ⟨hd, hb⟩
+      exact ⟨(Finset.mem_filter.mp hb).2, Finset.mem_univ b⟩
+    · rintro ⟨hb, -⟩
+      exact ⟨hE b hb, Finset.mem_filter.mpr ⟨Finset.mem_univ b, hb⟩⟩
+
 end Erdos274

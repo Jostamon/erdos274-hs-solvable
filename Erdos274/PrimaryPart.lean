@@ -97,6 +97,20 @@ theorem card_ker_powMonoidHom {s t : ℕ} (hst : s * t = Nat.card G)
     exact absurd h3 (lt_irrefl _)
   · exact h
 
+/-- In a finite abelian group of cardinality `s * t` with `s, t` coprime, the
+quotient by the `s`-torsion subgroup has cardinality exactly `t`. -/
+theorem card_quotient_ker_powMonoidHom {s t : ℕ} (hst : s * t = Nat.card G)
+    (hco : s.Coprime t) :
+    Nat.card (G ⧸ (powMonoidHom s : G →* G).ker) = t := by
+  have hG : 0 < Nat.card G := Nat.card_pos
+  have hs : 0 < s := Nat.pos_of_ne_zero fun h ↦ by simp [h, ← hst] at hG
+  have h1 : Nat.card G =
+      Nat.card (G ⧸ (powMonoidHom s : G →* G).ker) *
+        Nat.card ((powMonoidHom s : G →* G).ker) :=
+    Subgroup.card_eq_card_quotient_mul_card_subgroup _
+  rw [card_ker_powMonoidHom hst hco, ← hst, mul_comm s t] at h1
+  exact Nat.eq_of_mul_eq_mul_right hs h1.symm
+
 omit [Finite G] in
 /-- The `s`- and `t`-torsion subgroups intersect trivially when `s, t` are
 coprime. -/
@@ -168,5 +182,113 @@ lemma ncard_eq_sum_fiber_ncard (S : Set G) (K : Subgroup G) [Fintype (G ⧸ K)] 
   congr 1
   ext x
   simp
+
+section CosetHelpers
+
+omit [Finite G] in
+/-- If `L ⊓ P = ⊥`, the quotient map `G → G ⧸ P` embeds `L`. -/
+lemma card_map_mk'_of_inf_eq_bot {L P : Subgroup G} (h : L ⊓ P = ⊥) :
+    Nat.card (L.map (QuotientGroup.mk' P)) = Nat.card L := by
+  have h1 := card_inf_mul_card_map L P
+  rw [h] at h1
+  simpa using h1
+
+omit [Finite G] in
+/-- If `P ⊓ Q = ⊥`, the quotient map `G → G ⧸ P` is injective on any coset
+of `Q`. -/
+lemma injOn_mk_smul_coset_of_inf_eq_bot {P Q : Subgroup G} (hPQ : P ⊓ Q = ⊥)
+    (z : G) :
+    Set.InjOn (QuotientGroup.mk : G → G ⧸ P) (z • (Q : Set G)) := by
+  rintro u hu v hv huv
+  obtain ⟨qu, hqu, rfl⟩ := hu
+  obtain ⟨qv, hqv, rfl⟩ := hv
+  have h1 : (z * qu)⁻¹ * (z * qv) ∈ P := (QuotientGroup.eq).mp huv
+  have h2 : (z * qu)⁻¹ * (z * qv) ∈ Q := by
+    have : (z * qu)⁻¹ * (z * qv) = qu⁻¹ * qv := by group
+    rw [this]
+    exact Q.mul_mem (Q.inv_mem hqu) hqv
+  have h3 : (z * qu)⁻¹ * (z * qv) = 1 := by
+    have := hPQ ▸ Subgroup.mem_inf.mpr ⟨h1, h2⟩
+    simpa using this
+  have h4 : qu = qv := by
+    have h5 : (z * qu)⁻¹ * (z * qv) = qu⁻¹ * qv := by group
+    rw [h5] at h3
+    exact inv_mul_eq_one.mp h3
+  simp [h4]
+
+omit [Finite G] in
+/-- The fiber of the quotient map over `mk z` is the coset `z • Q`. -/
+lemma preimage_mk_singleton_eq (Q : Subgroup G) (z : G) :
+    (QuotientGroup.mk ⁻¹' {(z : G ⧸ Q)} : Set G) = z • (Q : Set G) := by
+  change {x : G | (x : G ⧸ Q) = (z : G ⧸ Q)} = z • (Q : Set G)
+  exact QuotientGroup.eq_class_eq_leftCoset Q z
+
+section
+variable {G' : Type*} [CommGroup G']
+
+omit [Finite G] in
+/-- A monoid hom maps a coset onto a coset of the image subgroup. -/
+lemma image_smul_coset (f : G →* G') (x : G) (L : Subgroup G) :
+    f '' (x • (L : Set G)) = f x • ((L.map f : Subgroup G') : Set G') := by
+  rw [Set.image_smul_distrib, Subgroup.coe_map]
+
+end
+
+omit [Finite G] in
+/-- A `Finset.biUnion` over the subtype of a finset equals the plain
+`biUnion`. -/
+lemma biUnion_subtype_univ {κ : Type*} (J : Finset κ)
+    (f : κ → Finset ℕ) [Fintype J] :
+    (Finset.univ : Finset J).biUnion (fun j ↦ f j) = J.biUnion f := by
+  ext d
+  simp only [Finset.mem_biUnion, Finset.mem_univ, true_and, Subtype.exists,
+    exists_prop]
+
+/-- The image in `G ⧸ K` of a coset of `L` has `|L.map (mk' K)|` elements. -/
+lemma ncard_image_mk_smul_coset (K : Subgroup G) (x : G) (L : Subgroup G) :
+    ((QuotientGroup.mk '' (x • (L : Set G))) : Set (G ⧸ K)).ncard =
+      Nat.card (L.map (QuotientGroup.mk' K)) := by
+  rw [show (QuotientGroup.mk : G → G ⧸ K) = (QuotientGroup.mk' K : G →* G ⧸ K)
+      from rfl,
+    image_smul_coset (QuotientGroup.mk' K) x L, ncard_smul_coset]
+
+/-- A set saturated for the quotient by `P` (closed under the `P`-fibers of
+its elements) has cardinality `|P|` times the cardinality of its image. -/
+lemma ncard_eq_card_mul_ncard_image {P : Subgroup G} {S : Set G}
+    [Fintype (G ⧸ P)]
+    (hsat : ∀ x ∈ S, ∀ y : G,
+      (QuotientGroup.mk y : G ⧸ P) = QuotientGroup.mk x → y ∈ S) :
+    S.ncard = Nat.card P * (QuotientGroup.mk '' S : Set (G ⧸ P)).ncard := by
+  classical
+  rw [ncard_eq_sum_fiber_ncard S P]
+  have hterm : ∀ c : G ⧸ P, (S ∩ QuotientGroup.mk ⁻¹' {c}).ncard =
+      if c ∈ QuotientGroup.mk '' S then Nat.card P else 0 := by
+    intro c
+    by_cases hc : c ∈ QuotientGroup.mk '' S
+    · rw [if_pos hc]
+      obtain ⟨x, hxS, hxc⟩ := hc
+      have hfib_sub : (QuotientGroup.mk ⁻¹' {c} : Set G) ⊆ S := by
+        intro y hy
+        rw [Set.mem_preimage, Set.mem_singleton_iff] at hy
+        exact hsat x hxS y (by rw [hy, ← hxc])
+      rw [Set.inter_eq_self_of_subset_right hfib_sub]
+      obtain ⟨z, hz⟩ := QuotientGroup.mk_surjective c
+      rw [← hz, preimage_mk_singleton_eq, ncard_smul_coset]
+    · rw [if_neg hc]
+      have hempty : S ∩ QuotientGroup.mk ⁻¹' {c} = ∅ := by
+        rw [Set.eq_empty_iff_forall_notMem]
+        rintro y ⟨hyS, hyc⟩
+        rw [Set.mem_preimage, Set.mem_singleton_iff] at hyc
+        exact hc ⟨y, hyS, hyc⟩
+      rw [hempty, Set.ncard_empty]
+  rw [Finset.sum_congr rfl (fun c _ ↦ hterm c), Finset.sum_ite,
+    Finset.sum_const, Finset.sum_const_zero, add_zero, smul_eq_mul, mul_comm]
+  congr 1
+  rw [Set.ncard_eq_toFinset_card']
+  congr 1
+  ext c
+  simp
+
+end CosetHelpers
 
 end Erdos274
