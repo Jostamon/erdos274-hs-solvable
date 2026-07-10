@@ -61,6 +61,13 @@ lemma smul_set_eq_of_mem {a y : G} {L : Subgroup G}
   (leftCoset_eq_iff L).mpr ((mem_leftCoset_iff a).mp hy)
 
 omit [Finite G] in
+/-- Cosets absorb right multiplication by subgroup elements. -/
+lemma mul_mem_smul_coset {g y h : G} {H : Subgroup G}
+    (hy : y ∈ g • (H : Set G)) (hh : h ∈ H) : y * h ∈ g • (H : Set G) := by
+  rw [mem_leftCoset_iff] at hy ⊢
+  simpa [mul_assoc] using H.mul_mem hy hh
+
+omit [Finite G] in
 /-- Two intersecting cosets intersect in a coset of the intersection. -/
 theorem smul_set_inter_smul_set_eq {H K : Subgroup G} {g k x : G}
     (hx : x ∈ g • (H : Set G) ∩ k • (K : Set G)) :
