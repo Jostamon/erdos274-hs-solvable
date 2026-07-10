@@ -22,6 +22,85 @@ namespace Erdos274
 
 open Finset
 
+/-- All positive divisors of at least one member of `R`. -/
+def divisorClosure (R : Finset ℕ) : Finset ℕ := R.biUnion Nat.divisors
+
+/-- Totient mass of a finite set of natural numbers. -/
+def mass (S : Finset ℕ) : ℕ := ∑ d ∈ S, d.totient
+
+/-- Divisor mass of a finite set of sizes. -/
+def divisorMass (R : Finset ℕ) : ℕ := mass (divisorClosure R)
+
+@[simp] lemma divisorClosure_empty : divisorClosure ∅ = ∅ := by
+  simp [divisorClosure]
+
+@[simp] lemma mass_empty : mass ∅ = 0 := by simp [mass]
+
+@[simp] lemma divisorMass_empty : divisorMass ∅ = 0 := by simp [divisorMass]
+
+/-- Divisor closure is monotone. -/
+lemma divisorClosure_mono {R T : Finset ℕ} (hRT : R ⊆ T) :
+    divisorClosure R ⊆ divisorClosure T := by
+  intro d hd
+  obtain ⟨m, hmR, hdm⟩ := Finset.mem_biUnion.mp hd
+  exact Finset.mem_biUnion.mpr ⟨m, hRT hmR, hdm⟩
+
+/-- Totient mass is monotone under inclusion. -/
+lemma mass_mono {S T : Finset ℕ} (hST : S ⊆ T) : mass S ≤ mass T := by
+  exact Finset.sum_le_sum_of_subset hST
+
+/-- Divisor mass is monotone under inclusion of size sets. -/
+lemma divisorMass_mono {R T : Finset ℕ} (hRT : R ⊆ T) :
+    divisorMass R ≤ divisorMass T :=
+  mass_mono (divisorClosure_mono hRT)
+
+/-- Totient mass is subadditive over a union. -/
+lemma mass_union_le (S T : Finset ℕ) : mass (S ∪ T) ≤ mass S + mass T := by
+  classical
+  have hdis : Disjoint S (T \ S) := Finset.disjoint_sdiff
+  have hunion : S ∪ T = S ∪ (T \ S) := by ext x; simp
+  rw [mass, hunion, Finset.sum_union hdis, mass, mass]
+  exact Nat.add_le_add_left
+    (Finset.sum_le_sum_of_subset (show T \ S ⊆ T from Finset.sdiff_subset)) _
+
+/-- Splitting a set into a difference and an intersection splits its mass. -/
+lemma mass_sdiff_add_mass_inter (S T : Finset ℕ) :
+    mass (S \ T) + mass (S ∩ T) = mass S := by
+  classical
+  rw [mass, mass, mass, ← Finset.sum_union (Finset.disjoint_sdiff_inter S T),
+    Finset.sdiff_union_inter]
+
+/-- Inclusion–exclusion for totient mass. -/
+lemma mass_union_add_mass_inter (S T : Finset ℕ) :
+    mass (S ∪ T) + mass (S ∩ T) = mass S + mass T := by
+  classical
+  have hu : mass (S ∪ T) = mass S + mass (T \ S) := by
+    rw [mass, mass, mass, show S ∪ T = S ∪ (T \ S) from by ext x; simp,
+      Finset.sum_union Finset.disjoint_sdiff]
+  rw [hu, add_assoc, Finset.inter_comm S T, mass_sdiff_add_mass_inter]
+
+/-- Totient mass is subadditive over a finite indexed union. -/
+lemma mass_biUnion_le {I : Type*} (s : Finset I)
+    (F : I → Finset ℕ) : mass (s.biUnion F) ≤ ∑ i ∈ s, mass (F i) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert a s ha ih =>
+      rw [Finset.biUnion_insert, Finset.sum_insert ha]
+      exact (mass_union_le _ _).trans (Nat.add_le_add_left ih _)
+
+/-- Divisor closure turns a union of size sets into a union. -/
+lemma divisorClosure_union (R T : Finset ℕ) :
+    divisorClosure (R ∪ T) = divisorClosure R ∪ divisorClosure T := by
+  ext d
+  simp [divisorClosure, or_and_right, exists_or]
+
+/-- Divisor mass is subadditive over a union of size sets. -/
+lemma divisorMass_union_le (R T : Finset ℕ) :
+    divisorMass (R ∪ T) ≤ divisorMass R + divisorMass T := by
+  rw [divisorMass, divisorClosure_union]
+  exact mass_union_le _ _
+
 /-- If every prime factor of `d` is at most `M`, then `d ≤ M * φ(d)`.
 Induction on the largest prime factor `q` of `d`: writing `d = q ^ e * d'`
 with `q ∤ d'`, the totient is multiplicative and `d' ≤ (q - 1) * φ(d')`. -/
