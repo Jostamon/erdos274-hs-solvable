@@ -3,7 +3,11 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Mathlib
+import Mathlib.Algebra.Group.Pointwise.Set.Card
+import Mathlib.Data.Nat.Factorization.Basic
+import Mathlib.GroupTheory.Perm.Cycle.Type
+import Mathlib.GroupTheory.QuotientGroup.Basic
+import Mathlib.Order.BourbakiWitt
 
 /-!
 # Coset-counting lemmas in a finite group
