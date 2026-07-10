@@ -234,8 +234,11 @@ theorem divisorMass_image_mul {k : ℕ} (hk : k ≠ 0) (R : Finset ℕ)
     divisorMass (R.image (k * ·)) = k * divisorMass R :=
   divisorMass_image_mul_aux hk R.card R le_rfl hR
 
-/-- **The fiber assembly inequality** (the arithmetic core of BFF 1987,
-Lemma IV): sizes `W j` are distributed over `p` fibers; a crossing index
+/-- **The fiber assembly inequality**, an abstraction of the divisor-mass
+manipulation in the inductive step of Sun's proof of his Theorem 3.1 (Sun
+2004; cf. Berger–Felzenbaum–Fraenkel 1987, Lemma IV, which Sun's Remark 3.2
+identifies with the pyramidal, `H = {e}` case of that theorem):
+sizes `W j` are distributed over `p` fibers; a crossing index
 (`j ∈ cross`) has `W j = p * w j` and appears in every fiber, any other index
 has `W j = w j` and appears in at least one fiber.  Then the divisor mass of
 the `W j` is at most the sum over fibers of the divisor masses of the local
