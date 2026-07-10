@@ -31,12 +31,27 @@ def mass (S : Finset ℕ) : ℕ := ∑ d ∈ S, d.totient
 /-- Divisor mass of a finite set of sizes. -/
 def divisorMass (R : Finset ℕ) : ℕ := mass (divisorClosure R)
 
+/-- Blueprint notation for divisor mass. -/
+abbrev μ : Finset ℕ → ℕ := divisorMass
+
 @[simp] lemma divisorClosure_empty : divisorClosure ∅ = ∅ := by
   simp [divisorClosure]
 
 @[simp] lemma mass_empty : mass ∅ = 0 := by simp [mass]
 
 @[simp] lemma divisorMass_empty : divisorMass ∅ = 0 := by simp [divisorMass]
+
+@[simp] lemma divisorClosure_singleton (m : ℕ) :
+    divisorClosure {m} = m.divisors := by simp [divisorClosure]
+
+/-- Gauss's totient identity says that a singleton size has mass equal to
+that size. -/
+@[simp] lemma divisorMass_singleton (m : ℕ) : divisorMass {m} = m := by
+  simp [divisorMass, mass, Nat.sum_totient]
+
+/-- The scaling identity for a singleton family. -/
+lemma divisorMass_mul_singleton (k m : ℕ) :
+    divisorMass {k * m} = k * divisorMass {m} := by simp
 
 /-- Divisor closure is monotone. -/
 lemma divisorClosure_mono {R T : Finset ℕ} (hRT : R ⊆ T) :
