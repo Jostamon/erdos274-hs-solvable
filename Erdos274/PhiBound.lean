@@ -116,6 +116,212 @@ lemma divisorMass_union_le (R T : Finset ℕ) :
   rw [divisorMass, divisorClosure_union]
   exact mass_union_le _ _
 
+/-- Divisor mass over a union splits off the unshared part exactly. -/
+lemma mass_union_eq (S T : Finset ℕ) : mass (S ∪ T) = mass S + mass (T \ S) := by
+  classical
+  rw [mass, show S ∪ T = S ∪ (T \ S) from by ext x; simp,
+    Finset.sum_union Finset.disjoint_sdiff, mass, mass]
+
+/-- Two divisor sets intersect in the divisors of the gcd. -/
+lemma divisors_inter_divisors {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
+    a.divisors ∩ b.divisors = (Nat.gcd a b).divisors := by
+  ext d
+  simp only [Finset.mem_inter, Nat.mem_divisors, Nat.dvd_gcd_iff]
+  have hg : Nat.gcd a b ≠ 0 := Nat.gcd_ne_zero_left ha
+  tauto
+
+/-- The divisor closure of an image of a finset. -/
+lemma divisorClosure_image {α : Type*} (s : Finset α) (f : α → ℕ) :
+    divisorClosure (s.image f) = s.biUnion fun j ↦ (f j).divisors := by
+  classical
+  ext d
+  simp [divisorClosure]
+
+/-- Intersecting one divisor set with a divisor closure yields the closure
+of the gcds. -/
+lemma divisors_inter_divisorClosure {m : ℕ} (hm : m ≠ 0) {R : Finset ℕ}
+    (hR : ∀ r ∈ R, r ≠ 0) :
+    m.divisors ∩ divisorClosure R = divisorClosure (R.image (Nat.gcd m)) := by
+  classical
+  ext d
+  simp only [Finset.mem_inter, divisorClosure, Finset.mem_biUnion,
+    Finset.mem_image]
+  constructor
+  · rintro ⟨hdm, r, hr, hdr⟩
+    refine ⟨Nat.gcd m r, ⟨r, hr, rfl⟩, Nat.mem_divisors.mpr
+      ⟨Nat.dvd_gcd (Nat.mem_divisors.mp hdm).1 (Nat.mem_divisors.mp hdr).1,
+        Nat.gcd_ne_zero_left hm⟩⟩
+  · rintro ⟨g, ⟨r, hr, rfl⟩, hdg⟩
+    have hdvd := (Nat.mem_divisors.mp hdg).1
+    exact ⟨Nat.mem_divisors.mpr ⟨hdvd.trans (Nat.gcd_dvd_left m r), hm⟩,
+      r, hr, Nat.mem_divisors.mpr ⟨hdvd.trans (Nat.gcd_dvd_right m r), hR r hr⟩⟩
+
+/-- Inserting a size `m` adds mass `m` and double-counts exactly the mass of
+the gcds with the existing sizes: `μ(insert m R) + μ(gcd m '' R) = m + μ(R)`. -/
+lemma divisorMass_insert_add_image_gcd {m : ℕ} (hm : m ≠ 0)
+    {R : Finset ℕ} (hR : ∀ r ∈ R, r ≠ 0) :
+    divisorMass (insert m R) + divisorMass (R.image (Nat.gcd m)) =
+      m + divisorMass R := by
+  classical
+  have hclos : divisorClosure (insert m R) = m.divisors ∪ divisorClosure R := by
+    simp [divisorClosure, Finset.biUnion_insert]
+  have hGauss : mass m.divisors = m := by
+    simpa [divisorMass] using divisorMass_singleton m
+  simp only [divisorMass]
+  rw [hclos, ← divisors_inter_divisorClosure hm hR]
+  have h := mass_union_add_mass_inter m.divisors (divisorClosure R)
+  omega
+
+/-- **The scaling identity** `μ(kR) = k·μ(R)` (Sun 2004, Lemma 3.1; first
+observed by Berger–Felzenbaum–Fraenkel). Auxiliary form with an explicit
+cardinality fuel for the strong induction. -/
+private lemma divisorMass_image_mul_aux {k : ℕ} (hk : k ≠ 0) :
+    ∀ n (R : Finset ℕ), R.card ≤ n → (∀ r ∈ R, r ≠ 0) →
+      divisorMass (R.image (k * ·)) = k * divisorMass R := by
+  classical
+  intro n
+  induction n with
+  | zero =>
+      intro R hcard _
+      rw [Finset.card_eq_zero.mp (Nat.le_zero.mp hcard)]
+      simp
+  | succ n ih =>
+      intro R hcard hR
+      rcases R.eq_empty_or_nonempty with rfl | ⟨m, hm⟩
+      · simp
+      set R' := R.erase m with hR'_def
+      have hinsert : R = insert m R' := (Finset.insert_erase hm).symm
+      have hcard' : R'.card ≤ n := by
+        have h1 : R.card = R'.card + 1 :=
+          (Finset.card_erase_add_one hm).symm
+        omega
+      have hR'0 : ∀ r ∈ R', r ≠ 0 := fun r hr ↦ hR r (Finset.erase_subset _ _ hr)
+      have hm0 : m ≠ 0 := hR m hm
+      -- The three smaller families the induction consumes.
+      have hgcd0 : ∀ r ∈ R'.image (Nat.gcd m), r ≠ 0 := by
+        rintro r hr
+        obtain ⟨r', -, rfl⟩ := Finset.mem_image.mp hr
+        exact Nat.gcd_ne_zero_left hm0
+      have hgcdcard : (R'.image (Nat.gcd m)).card ≤ n :=
+        le_trans Finset.card_image_le hcard'
+      have hkR'0 : ∀ r ∈ R'.image (k * ·), r ≠ 0 := by
+        rintro r hr
+        obtain ⟨r', hr', rfl⟩ := Finset.mem_image.mp hr
+        exact Nat.mul_ne_zero hk (hR'0 r' hr')
+      -- The gcd family commutes with scaling.
+      have hgcd_image : (R'.image (k * ·)).image (Nat.gcd (k * m)) =
+          (R'.image (Nat.gcd m)).image (k * ·) := by
+        rw [Finset.image_image, Finset.image_image]
+        exact Finset.image_congr fun r _ ↦ Nat.gcd_mul_left k m r
+      -- Insert identities at the unscaled and scaled levels.
+      have h1 := divisorMass_insert_add_image_gcd hm0 hR'0
+      have h2 := divisorMass_insert_add_image_gcd
+        (Nat.mul_ne_zero hk hm0) hkR'0
+      rw [hgcd_image, ih _ hcard' hR'0, ih _ hgcdcard hgcd0] at h2
+      -- Combine: multiply the unscaled identity by `k` and cancel.
+      have h1k : k * divisorMass (insert m R') +
+          k * divisorMass (R'.image (Nat.gcd m)) =
+            k * m + k * divisorMass R' := by
+        have := congrArg (k * ·) h1
+        simpa [mul_add] using this
+      rw [hinsert, Finset.image_insert]
+      omega
+
+/-- **The scaling identity** `μ(kR) = k·μ(R)` for a finite family of nonzero
+sizes (Sun 2004, Lemma 3.1). -/
+theorem divisorMass_image_mul {k : ℕ} (hk : k ≠ 0) (R : Finset ℕ)
+    (hR : ∀ r ∈ R, r ≠ 0) :
+    divisorMass (R.image (k * ·)) = k * divisorMass R :=
+  divisorMass_image_mul_aux hk R.card R le_rfl hR
+
+/-- **The fiber assembly inequality** (the arithmetic core of BFF 1987,
+Lemma IV): sizes `W j` are distributed over `p` fibers; a crossing index
+(`j ∈ cross`) has `W j = p * w j` and appears in every fiber, any other index
+has `W j = w j` and appears in at least one fiber.  Then the divisor mass of
+the `W j` is at most the sum over fibers of the divisor masses of the local
+`w j` families. -/
+theorem mass_biUnion_le_sum_mass_fiber {κ γ : Type*} [Fintype κ] [Fintype γ]
+    {p : ℕ} (hp : p ≠ 0) (hγ : Fintype.card γ = p)
+    (w W : κ → ℕ) (hw0 : ∀ j, w j ≠ 0)
+    (J : γ → Finset κ) (cross : Finset κ)
+    (hcrossW : ∀ j ∈ cross, W j = p * w j)
+    (hlocalW : ∀ j ∉ cross, W j = w j)
+    (hcrossJ : ∀ j ∈ cross, ∀ c, j ∈ J c)
+    (hallJ : ∀ j : κ, ∃ c, j ∈ J c) :
+    mass (Finset.univ.biUnion fun j ↦ (W j).divisors) ≤
+      ∑ c : γ, mass ((J c).biUnion fun j ↦ (w j).divisors) := by
+  classical
+  set A : Finset ℕ := cross.biUnion fun j ↦ (w j).divisors with hA
+  set C : Finset ℕ := cross.biUnion fun j ↦ (W j).divisors with hC
+  set B : γ → Finset ℕ := fun c ↦ ((J c) \ cross).biUnion fun j ↦ (w j).divisors
+    with hB
+  have hAC : A ⊆ C := by
+    intro d hd
+    obtain ⟨j, hj, hdj⟩ := Finset.mem_biUnion.mp hd
+    refine Finset.mem_biUnion.mpr ⟨j, hj, ?_⟩
+    rw [Nat.mem_divisors] at hdj ⊢
+    refine ⟨?_, ?_⟩
+    · rw [hcrossW j hj]
+      exact hdj.1.trans (dvd_mul_left _ _)
+    · rw [hcrossW j hj]
+      exact Nat.mul_ne_zero hp (hw0 j)
+  -- Scaling: the crossing sizes contribute `p` times their fiber mass.
+  have hCA : mass C = p * mass A := by
+    have h2 : cross.image W = (cross.image w).image (p * ·) := by
+      rw [Finset.image_image]
+      exact Finset.image_congr fun j hj ↦ hcrossW j hj
+    calc mass C = divisorMass (cross.image W) := by
+          rw [divisorMass, divisorClosure_image, hC]
+      _ = divisorMass ((cross.image w).image (p * ·)) := by rw [h2]
+      _ = p * divisorMass (cross.image w) := by
+          refine divisorMass_image_mul hp _ ?_
+          rintro r hr
+          obtain ⟨j, -, rfl⟩ := Finset.mem_image.mp hr
+          exact hw0 j
+      _ = p * mass A := by rw [divisorMass, divisorClosure_image, hA]
+  -- Each fiber's family dominates the crossing part plus its local part.
+  have hsub : ∀ c, A ∪ B c ⊆ (J c).biUnion fun j ↦ (w j).divisors := by
+    intro c d hd
+    rcases Finset.mem_union.mp hd with hdA | hdB
+    · obtain ⟨j, hj, hdj⟩ := Finset.mem_biUnion.mp hdA
+      exact Finset.mem_biUnion.mpr ⟨j, hcrossJ j hj c, hdj⟩
+    · obtain ⟨j, hj, hdj⟩ := Finset.mem_biUnion.mp hdB
+      exact Finset.mem_biUnion.mpr ⟨j, (Finset.mem_sdiff.mp hj).1, hdj⟩
+  -- The crossing closure and the local parts cover all divisors of the `W j`.
+  have hcover : Finset.univ.biUnion (fun j ↦ (W j).divisors) ⊆
+      C ∪ Finset.univ.biUnion B := by
+    intro d hd
+    obtain ⟨j, -, hdj⟩ := Finset.mem_biUnion.mp hd
+    by_cases hj : j ∈ cross
+    · exact Finset.mem_union_left _ (Finset.mem_biUnion.mpr ⟨j, hj, hdj⟩)
+    · obtain ⟨c, hc⟩ := hallJ j
+      rw [hlocalW j hj] at hdj
+      exact Finset.mem_union_right _ (Finset.mem_biUnion.mpr
+        ⟨c, Finset.mem_univ c, Finset.mem_biUnion.mpr
+          ⟨j, Finset.mem_sdiff.mpr ⟨hc, hj⟩, hdj⟩⟩)
+  have hsdiff : (Finset.univ.biUnion B) \ C ⊆
+      Finset.univ.biUnion fun c ↦ B c \ A := by
+    intro d hd
+    obtain ⟨hdB, hdC⟩ := Finset.mem_sdiff.mp hd
+    obtain ⟨c, -, hc⟩ := Finset.mem_biUnion.mp hdB
+    exact Finset.mem_biUnion.mpr ⟨c, Finset.mem_univ c,
+      Finset.mem_sdiff.mpr ⟨hc, fun hdA ↦ hdC (hAC hdA)⟩⟩
+  calc mass (Finset.univ.biUnion fun j ↦ (W j).divisors)
+      ≤ mass (C ∪ Finset.univ.biUnion B) := mass_mono hcover
+    _ = mass C + mass ((Finset.univ.biUnion B) \ C) := mass_union_eq _ _
+    _ ≤ p * mass A + mass (Finset.univ.biUnion fun c ↦ B c \ A) := by
+        rw [hCA]
+        exact Nat.add_le_add_left (mass_mono hsdiff) _
+    _ ≤ p * mass A + ∑ c : γ, mass (B c \ A) :=
+        Nat.add_le_add_left (mass_biUnion_le _ _) _
+    _ = ∑ c : γ, (mass A + mass (B c \ A)) := by
+        rw [Finset.sum_add_distrib, Finset.sum_const, Finset.card_univ, hγ,
+          smul_eq_mul]
+    _ = ∑ c : γ, mass (A ∪ B c) :=
+        Finset.sum_congr rfl fun c _ ↦ (mass_union_eq A (B c)).symm
+    _ ≤ ∑ c : γ, mass ((J c).biUnion fun j ↦ (w j).divisors) :=
+        Finset.sum_le_sum fun c _ ↦ mass_mono (hsub c)
+
 /-- If every prime factor of `d` is at most `M`, then `d ≤ M * φ(d)`.
 Induction on the largest prime factor `q` of `d`: writing `d = q ^ e * d'`
 with `q ∤ d'`, the totient is multiplicative and `d' ≤ (q - 1) * φ(d')`. -/

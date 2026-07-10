@@ -55,5 +55,53 @@ theorem map_subtype {G : Type u} [Group G] (H : Subgroup G)
   rw [← he]
   exact c.map H.subtype H.subtype_injective
 
+/-- Restrict a chain ending at the subgroup `H` to a chain filling the whole
+group `H`. -/
+theorem comap_subtype {G : Type u} [Group G] {H : Subgroup G}
+    (c : PrimeNormalChain H) : PrimeNormalChain (⊤ : Subgroup H) := by
+  induction c with
+  | bot =>
+      have hbot : (⊤ : Subgroup (⊥ : Subgroup G)) = ⊥ := by
+        ext x
+        obtain ⟨x, hx⟩ := x
+        simp [Subgroup.mem_bot, Subtype.ext_iff, Subgroup.mem_bot.mp hx]
+      rw [hbot]
+      exact PrimeNormalChain.bot
+  | @step H K hKH hnormal hprime tail ih =>
+      have hmap := ih.map (Subgroup.inclusion hKH)
+        (Subgroup.inclusion_injective hKH)
+      have htop : (⊤ : Subgroup K).map (Subgroup.inclusion hKH) =
+          K.subgroupOf H := by
+        ext x
+        constructor
+        · rintro ⟨y, -, rfl⟩
+          exact y.property
+        · intro hx
+          exact ⟨⟨(x : G), hx⟩, Subgroup.mem_top _, rfl⟩
+      rw [htop] at hmap
+      refine PrimeNormalChain.step le_top ?_ ?_ hmap
+      · exact hnormal.comap (⊤ : Subgroup H).subtype
+      · rw [Subgroup.relIndex_top_right]
+        exact hprime
+
+/-- A chain ending at a nontrivial subgroup starts with a step. -/
+theorem exists_step_of_ne_bot {G : Type u} [Group G] {H : Subgroup G}
+    (c : PrimeNormalChain H) (h : H ≠ ⊥) :
+    ∃ K, K ≤ H ∧ (K.subgroupOf H).Normal ∧ (K.relIndex H).Prime ∧
+      PrimeNormalChain K := by
+  cases c with
+  | bot => exact absurd rfl h
+  | step hKH hnormal hprime tail => exact ⟨_, hKH, hnormal, hprime, tail⟩
+
 end PrimeNormalChain
+
+/-- A subgroup whose copy inside `⊤` is normal is normal. -/
+lemma normal_of_normal_subgroupOf_top {G : Type u} [Group G] {L : Subgroup G}
+    (h : (L.subgroupOf ⊤).Normal) : L.Normal := by
+  constructor
+  intro x hx y
+  have := h.conj_mem ⟨x, Subgroup.mem_top x⟩
+    (by simpa [Subgroup.mem_subgroupOf] using hx) ⟨y, Subgroup.mem_top y⟩
+  simpa [Subgroup.mem_subgroupOf] using this
+
 end Subgroup
