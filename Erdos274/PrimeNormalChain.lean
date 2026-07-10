@@ -41,5 +41,19 @@ theorem map {G : Type u} {G' : Type v} [Group G] [Group G']
         rfl
       · simpa [Subgroup.relIndex_map_map_of_injective K H hf] using hp
 
+/-- Regard a chain in the abstract group `H` as a chain ending at the
+ambient subgroup `H`. -/
+theorem map_subtype {G : Type u} [Group G] (H : Subgroup G)
+    (c : PrimeNormalChain (⊤ : Subgroup H)) : PrimeNormalChain H := by
+  have he : Subgroup.map H.subtype ⊤ = H := by
+    ext x
+    constructor
+    · rintro ⟨y, -, rfl⟩
+      exact y.property
+    · intro hx
+      exact ⟨⟨x, hx⟩, Subgroup.mem_top _, rfl⟩
+  rw [← he]
+  exact c.map H.subtype H.subtype_injective
+
 end PrimeNormalChain
 end Subgroup
