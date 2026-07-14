@@ -3,7 +3,7 @@ Copyright (c) 2026 Erdos 274 Agentic contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Erdos 274 Agentic contributors
 -/
-import Erdos274.FiniteReduction
+import Erdos274.ExactCovering.FiniteIndex
 
 universe u v
 open scoped Cardinal Pointwise
@@ -189,6 +189,15 @@ theorem finiteQuotientCover_part_index (i : ι) :
   apply Subgroup.index_map_eq
   · exact QuotientGroup.mk'_surjective P.commonCore
   · simpa using P.commonCore_le_part i
+
+/-- If the canonical finite quotient cover has repeated indices, so does the original cover. -/
+theorem exists_equal_index_of_finiteQuotientCover
+    (h : ∃ i j, i ≠ j ∧ (P.finiteQuotientCover.parts i).index =
+      (P.finiteQuotientCover.parts j).index) :
+    ∃ i j, i ≠ j ∧ (P.parts i).index = (P.parts j).index := by
+  obtain ⟨i, j, hij, hind⟩ := h
+  exact ⟨i, j, hij, by
+    rwa [P.finiteQuotientCover_part_index i, P.finiteQuotientCover_part_index j] at hind⟩
 
 end Group.ExactCovering
 
