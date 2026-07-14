@@ -10,7 +10,7 @@ import Mathlib.Algebra.Order.Star.Basic
 # Totient bounds for the Herzog–Schönheim conjecture, abelian case
 
 Two arithmetic ingredients of the Berger–Felzenbaum–Fraenkel argument
-(see `docs/erdos274/BLUEPRINT.md`):
+(see `docs/erdos274/known-cases/BLUEPRINT.md`):
 
 * `Erdos274.le_mul_totient`: if every prime factor of `d` is at most `M`,
   then `d ≤ M * φ(d)`;

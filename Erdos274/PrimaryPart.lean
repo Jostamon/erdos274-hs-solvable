@@ -13,7 +13,7 @@ import Mathlib.Order.BourbakiWitt
 # Coset-counting lemmas in a finite group
 
 Coset-counting lemmas used in the proof of the Herzog–Schönheim conjecture
-for finite nilpotent groups (see `docs/erdos274/BLUEPRINT.md`).
+for finite nilpotent groups (see `docs/erdos274/known-cases/BLUEPRINT.md`).
 
 ## Main results
 
