@@ -4,7 +4,34 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Erdos 274 Agentic contributors
 -/
 import Erdos274.ExactCovering.Quotient
+/-!
+# Cardinality properties of exact coset coverings
 
+This file relates the different cardinality notions used for subgroup parts of an exact coset
+covering and studies their behaviour under passage to the common-core quotient.
+
+It records the distinction between genuine cardinality `Cardinal.mk`, finite cardinality
+`Nat.card`, and extended-natural cardinality `ENat.card`. It proves a cardinal factorization
+formula for subgroups containing the kernel of a homomorphism and applies it to the canonical
+common-core quotient cover.
+
+The file also separates the finite and infinite ambient-group cases. In an infinite group,
+every finite-index subgroup has the same genuine cardinality as the ambient group, so repeated
+part cardinality is automatic for every nontrivial finite exact covering.
+
+## Main results
+
+* `cardinalMk_eq_iff_equiv`
+* `cardinalMk_eq_natCard_of_finite`
+* `one_lt_enatCard_iff_nontrivial`
+* `cardinalMk_eq_map_mul_kernel`
+* `cardinalMk_eq_of_map_cardinalMk_eq`
+* `finiteQuotientCover_part_cardinalMk`
+* `finiteQuotientCover_cardinalMk_eq_imp`
+* `exactCovering_nontrivial_of_one_lt_card`
+* `cardinalMk_subgroup_eq_of_finiteIndex`
+* `exactCovering_exists_equal_cardinalMk_of_infinite`
+-/
 universe u v
 open scoped BigOperators Cardinal Pointwise
 namespace Erdos274
@@ -57,7 +84,7 @@ theorem natCard_eq_iff_cardinalMk_eq [Finite α] [Finite β] :
 /-- For finite types, equality of extended-natural cardinals and natural cardinals agree. -/
 theorem enatCard_eq_iff_natCard_eq [Finite α] [Finite β] :
     ENat.card α = ENat.card β ↔ Nat.card α = Nat.card β := by
-  rw [ENat.card_eq_coe_natCard, ENat.card_eq_coe_natCard, ENat.coe_inj]
+  rw [ENat.card_eq_coe_natCard, ENat.card_eq_coe_natCard, ENat.natCast_inj]
 
 end CardinalSemantics
 
@@ -129,8 +156,8 @@ theorem exactCovering_nontrivial_of_one_lt_card
     (P : Group.ExactCovering G ι) (hι : 1 < Fintype.card ι) : Nontrivial G := by
   rw [← not_subsingleton_iff_nontrivial]
   intro hsub
-  letI : Subsingleton G := hsub
-  letI : Nontrivial ι := Fintype.one_lt_card_iff_nontrivial.mp hι
+  let : Subsingleton G := hsub
+  let : Nontrivial ι := Fintype.one_lt_card_iff_nontrivial.mp hι
   obtain ⟨i, j, hij⟩ := exists_pair_ne ι
   obtain ⟨x, hxi⟩ := P.coset_nonempty i
   obtain ⟨y, hyj⟩ := P.coset_nonempty j
@@ -148,15 +175,15 @@ variable {G : Type u} [Group G]
 /-- A finite-index subgroup of an infinite group has the same true cardinality as the group. -/
 theorem cardinalMk_subgroup_eq_of_finiteIndex [Infinite G] (H : Subgroup G)
     (hH : H.FiniteIndex) : #H = #G := by
-  letI : H.FiniteIndex := hH
+  let : H.FiniteIndex := hH
   have hH_not_finite : ¬Finite H := by
     intro hfinite
-    letI : Finite H := hfinite
-    haveI : Finite G :=
+    let : Finite H := hfinite
+    have : Finite G :=
       (H.finite_iff_finite_and_finiteIndex).mpr ⟨inferInstance, inferInstance⟩
     exact not_finite_iff_infinite.mpr (inferInstance : Infinite G) inferInstance
-  letI : Infinite H := not_finite_iff_infinite.mp hH_not_finite
-  letI : Finite (G ⧸ H) := Subgroup.finite_quotient_of_finiteIndex
+  let : Infinite H := not_finite_iff_infinite.mp hH_not_finite
+  let : Finite (G ⧸ H) := Subgroup.finite_quotient_of_finiteIndex
   have hquot_le : #(G ⧸ H) ≤ #H :=
     (Cardinal.lt_aleph0_of_finite (G ⧸ H)).le.trans (Cardinal.aleph0_le_mk H)
   have hmul : #(G ⧸ H) * #H = #H :=
@@ -173,7 +200,7 @@ variable {ι : Type v} [Fintype ι]
 theorem exactCovering_exists_equal_cardinalMk_of_infinite [Infinite G]
     (P : Group.ExactCovering G ι) (hι : 1 < Fintype.card ι) :
     ∃ i j, i ≠ j ∧ #(P.parts i) = #(P.parts j) := by
-  letI : Nontrivial ι := Fintype.one_lt_card_iff_nontrivial.mp hι
+  let : Nontrivial ι := Fintype.one_lt_card_iff_nontrivial.mp hι
   obtain ⟨i, j, hij⟩ := exists_pair_ne ι
   exact ⟨i, j, hij,
     (cardinalMk_subgroup_eq_of_finiteIndex (P.parts i) (P.part_finiteIndex i)).trans

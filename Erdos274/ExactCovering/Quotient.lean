@@ -4,7 +4,35 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Erdos 274 Agentic contributors
 -/
 import Erdos274.ExactCovering.FiniteIndex
+/-!
+# Quotients of exact coset coverings
 
+This file develops the descent of an exact coset covering through group homomorphisms and,
+in particular, through the quotient by its common normal core.
+
+The key criterion identifies when the images of the selected left cosets remain pairwise
+disjoint: the kernel of the homomorphism must lie in every participating subgroup. For a
+surjective homomorphism satisfying this condition, the exact covering descends to the target
+group.
+
+Applying this construction to the common normal core gives a canonical finite quotient cover.
+The quotient construction preserves the subgroup indices exactly.
+
+## Main definitions
+
+* `Group.ExactCovering.map`
+* `Group.ExactCovering.finiteQuotientCover`
+
+## Main results
+
+* `Group.ExactCovering.preimage_map_leftCoset`
+* `Group.ExactCovering.map_leftCosets_pairwiseDisjoint_iff_ker_le`
+* `Group.ExactCovering.map_leftCosets_pairwiseDisjoint_iff_ker_le_commonCore`
+* `Group.ExactCovering.quotient_mapped_leftCosets_pairwiseDisjoint_iff_part_le`
+* `Group.ExactCovering.quotient_mapped_leftCosets_pairwiseDisjoint_iff_part_eq_commonCore`
+* `Group.ExactCovering.finiteQuotientCover_part_index`
+* `Group.ExactCovering.exists_equal_index_of_finiteQuotientCover`
+-/
 universe u v
 open scoped Cardinal Pointwise
 namespace Erdos274

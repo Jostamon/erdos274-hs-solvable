@@ -4,7 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Erdos 274 Agentic contributors
 -/
 import Erdos274.ExactCovering.Quotient
+/-!
+# Finite-index properties of exact coverings
 
+Basic finite-index and counting results for the subgroups occurring in a finite exact
+coset covering.
+-/
 universe u v
 open scoped Cardinal Pointwise
 namespace Erdos274
@@ -62,7 +67,7 @@ def QuotientShadowIndex (N : Subgroup G) [N.Normal] (x : G) :=
 noncomputable instance quotientShadowIndexFintype
     (N : Subgroup G) [N.Normal] (x : G) :
     Fintype (P.QuotientShadowIndex N x) := by
-  letI : Finite (P.QuotientShadowIndex N x) :=
+  let : Finite (P.QuotientShadowIndex N x) :=
     Finite.of_injective Subtype.val Subtype.val_injective
   exact Fintype.ofFinite (P.QuotientShadowIndex N x)
 
@@ -89,7 +94,7 @@ theorem fiberIndex_nonempty (N : Subgroup G) (x : G) :
 
 noncomputable instance fiberIndexFintype (N : Subgroup G) (x : G) :
     Fintype (P.FiberIndex N x) := by
-  letI : Finite (P.FiberIndex N x) :=
+  let : Finite (P.FiberIndex N x) :=
     Finite.of_injective Subtype.val Subtype.val_injective
   exact Fintype.ofFinite (P.FiberIndex N x)
 

@@ -86,7 +86,7 @@ lemma ncard_smul_coset (x : G) (H : Subgroup G) :
 lemma ncard_eq_sum_fiber_ncard (S : Set G) (K : Subgroup G) [Fintype (G ⧸ K)] :
     S.ncard = ∑ c : G ⧸ K, (S ∩ QuotientGroup.mk ⁻¹' {c}).ncard := by
   classical
-  haveI : Fintype G := Fintype.ofFinite _
+  have : Fintype G := Fintype.ofFinite _
   rw [Set.ncard_eq_toFinset_card' S,
     Finset.card_eq_sum_card_fiberwise
       (f := fun x ↦ (QuotientGroup.mk x : G ⧸ K)) (t := Finset.univ)
@@ -175,13 +175,13 @@ lemma ncard_eq_card_mul_ncard_image {P : Subgroup G} {S : Set G}
       (QuotientGroup.mk y : G ⧸ P) = QuotientGroup.mk x → y ∈ S) :
     S.ncard = Nat.card P * (QuotientGroup.mk '' S : Set (G ⧸ P)).ncard := by
   classical
-  haveI : Fintype (G ⧸ P) := Fintype.ofFinite _
+  have : Fintype (G ⧸ P) := Fintype.ofFinite _
   rw [ncard_eq_sum_fiber_ncard S P]
   have hterm : ∀ c : G ⧸ P, (S ∩ QuotientGroup.mk ⁻¹' {c}).ncard =
       if c ∈ QuotientGroup.mk '' S then Nat.card P else 0 := by
     intro c
     by_cases hc : c ∈ QuotientGroup.mk '' S
-    · rw [if_pos hc]
+    · rw [ite_eq_left hc]
       obtain ⟨x, hxS, hxc⟩ := hc
       have hfib_sub : (QuotientGroup.mk ⁻¹' {c} : Set G) ⊆ S := by
         intro y hy
@@ -190,7 +190,7 @@ lemma ncard_eq_card_mul_ncard_image {P : Subgroup G} {S : Set G}
       rw [Set.inter_eq_self_of_subset_right hfib_sub]
       obtain ⟨z, hz⟩ := QuotientGroup.mk_surjective c
       rw [← hz, preimage_mk_singleton_eq, ncard_smul_coset]
-    · rw [if_neg hc]
+    · rw [ite_eq_right hc]
       have hempty : S ∩ QuotientGroup.mk ⁻¹' {c} = ∅ := by
         rw [Set.eq_empty_iff_forall_notMem]
         rintro y ⟨hyS, hyc⟩

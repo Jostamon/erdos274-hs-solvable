@@ -7,7 +7,35 @@ import Erdos274.ExactCovering.Cardinality
 import Erdos274.ExactCovering.Fibers
 import Mathlib.Algebra.BigOperators.Ring.Finset
 import Mathlib.Tactic.NormNum
+/-!
+# Counting and volume identities for exact coset coverings
 
+This file proves the basic counting identities associated with an exact finite coset covering.
+
+For finite ambient groups, subgroup order and subgroup index determine each other, the orders
+of the participating subgroups sum to the order of the group, and the reciprocals of their
+indices sum to one. Passage to the finite common-core quotient extends the reciprocal-index
+identity to arbitrary ambient groups.
+
+The same identity is applied to subgroup-coset fibers, and an exact covering is also packaged
+as an equivalence between the ambient group and the sigma type of its subgroup parts.
+
+## Main definitions
+
+* `Group.ExactCovering.cellEquiv`
+
+## Main results
+
+* `subgroup_natCard_eq_iff_index_eq`
+* `subgroup_cardinalMk_eq_iff_index_eq`
+* `subgroup_enatCard_eq_iff_index_eq`
+* `exactCovering_sum_natCard_parts`
+* `exactCovering_sum_inv_index_of_finite`
+* `finiteQuotientCover_cardinalMk_eq_iff`
+* `exactCovering_sum_inv_index`
+* `fiberCover_sum_inv_index`
+* `Group.ExactCovering.cellEquiv_apply`
+-/
 universe u v
 open scoped BigOperators Cardinal Pointwise
 namespace Erdos274
@@ -104,7 +132,7 @@ end FiniteGroups
 theorem exactCovering_sum_inv_index {G : Type u} [Group G]
     {i : Type v} [Fintype i] (P : Group.ExactCovering G i) :
     ∑ j, ((P.parts j).index : ℚ)⁻¹ = 1 := by
-  letI : Finite (G ⧸ P.commonCore) := P.finite_commonCore_quotient
+  let : Finite (G ⧸ P.commonCore) := P.finite_commonCore_quotient
   simpa only [P.finiteQuotientCover_part_index] using
     exactCovering_sum_inv_index_of_finite P.finiteQuotientCover
 

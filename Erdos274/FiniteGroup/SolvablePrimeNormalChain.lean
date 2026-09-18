@@ -15,7 +15,7 @@ universe u
 
 /-- Auxiliary induction form with cardinality fuel. -/
 private theorem primeNormalChain_top_of_isSolvable_aux :
-    ∀ (n : ℕ) (G : Type u) [Group G] [Finite G] [IsSolvable G],
+    ∀ (n : ℕ) (G : Type u) [Group G] [Finite G] [Group.IsSolvable G],
       Nat.card G = n → Subgroup.PrimeNormalChain (⊤ : Subgroup G) := by
   intro n
   induction n using Nat.strong_induction_on with
@@ -27,14 +27,14 @@ private theorem primeNormalChain_top_of_isSolvable_aux :
         simp [Subsingleton.elim x 1]
       exact htop ▸ Subgroup.PrimeNormalChain.bot
     · obtain ⟨L, hLnormal, hLne, hLmax⟩ := Erdos274.exists_maximal_normal G
-      haveI := hLnormal
-      haveI hsimple : IsSimpleGroup (G ⧸ L) :=
+      have := hLnormal
+      have hsimple : IsSimpleGroup (G ⧸ L) :=
         Erdos274.isSimpleGroup_quotient_of_maximal_normal hLne hLmax
       -- The simple quotient of a solvable group is commutative, hence of
       -- prime order.
       have hcomm : ∀ a b : G ⧸ L, a * b = b * a :=
         IsSimpleGroup.comm_iff_isSolvable.mpr inferInstance
-      letI : CommGroup (G ⧸ L) :=
+      let : CommGroup (G ⧸ L) :=
         { (inferInstance : Group (G ⧸ L)) with mul_comm := hcomm }
       have hprime : L.index.Prime := by
         rw [Subgroup.index_eq_card]
@@ -56,7 +56,7 @@ private theorem primeNormalChain_top_of_isSolvable_aux :
 /-- **A finite solvable group has a prime-normal chain**: a composition
 series from `⊥` to `⊤` whose successive quotients have prime order. -/
 theorem PrimeNormalChain.of_isSolvable (G : Type u) [Group G] [Finite G]
-    [IsSolvable G] : Subgroup.PrimeNormalChain (⊤ : Subgroup G) :=
+    [Group.IsSolvable G] : Subgroup.PrimeNormalChain (⊤ : Subgroup G) :=
   primeNormalChain_top_of_isSolvable_aux (Nat.card G) G rfl
 
 end Subgroup
