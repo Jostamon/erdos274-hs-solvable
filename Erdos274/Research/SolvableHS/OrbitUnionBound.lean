@@ -22,6 +22,17 @@ If every `|Oᵢ|` is coprime to the order of every point stabiliser in `H` along
 For `Ω = G ⧸ X` this is the orbit union bound on `X∖G` of the track; for the
 regular action (`X = 1`) it is Sun 2004, Theorem 3.1 (`UnionBound.lean`).
 
+**Coset convention.**  The track states Lemma O for *right* cosets `X∖G`, with
+`K` acting by right multiplication, `Xy ↦ Xyk`.  Mathlib's `G ⧸ X` is the type
+of *left* cosets `yX`, with `G` acting by left multiplication, `k • yX = kyX`.
+Inversion `Xy ↦ y⁻¹X` is a bijection `X∖G ≃ G ⧸ X` carrying `Xyk` to
+`k⁻¹ • y⁻¹X`.  Since `k ↦ k⁻¹` is a bijection of `K`, it maps each `K`-orbit on
+`X∖G` onto a `K`-orbit on `G ⧸ X` of the same size.  It preserves unions, and
+it carries point stabilisers `K ∩ y⁻¹Xy` to point stabilisers. So
+`mass_le_ncard_iUnion_orbit_quotient` is exactly the track's statement.  The
+general theorem `mass_le_ncard_iUnion_orbit` is stated for an arbitrary
+`G`-set, so it is convention-free.
+
 The proof inducts along the chain.  At a step `L ◁ H` of prime index `q`,
 each orbit either stays a single `(Kᵢ ⊓ L)`-orbit or splits into `q` of them
 (`card_orbit_inf_mul_relIndex`); splitting forces `q ∣ |Oᵢ|`, so by
@@ -470,7 +481,9 @@ lemma card_stabilizer_quotient [Finite G] (X : Subgroup G) (x : G ⧸ X) :
 /-- **Lemma O, solvable form** (`SOLVABLE_HS_TRACK.md` §9.5).  In a finite
 solvable group `G`, orbits `Oᵢ` of subgroups `Kᵢ` on `G ⧸ X` whose sizes are
 coprime to `|X|` satisfy `Σ_{d ∣ some |Oᵢ|} φ(d) ≤ |⋃ Oᵢ|`.  With `X = 1` this is
-BFF's Lemma IV for solvable groups (Sun 2004, Thm 3.1). -/
+BFF's Lemma IV for solvable groups (Sun 2004, Thm 3.1).  Mathlib's `G ⧸ X` is
+left cosets; the track's right-coset form `X∖G` follows by inversion (see the
+module docstring). -/
 theorem mass_le_ncard_iUnion_orbit_quotient [Finite G] [Group.IsSolvable G]
     (X : Subgroup G) {κ : Type w} [Fintype κ] (ω : κ → G ⧸ X) (K : κ → Subgroup G)
     (hcop : ∀ i, Nat.Coprime (orbit (K i) (ω i)).ncard (Nat.card X)) :
