@@ -304,6 +304,182 @@ lemma ncard_eq_sum_ncard_label {γ : Type*} [Fintype γ] [Finite Ω]
   ext x
   simp
 
+/-- Base case of the orbit-union induction.  Kept separate so Lean does not
+elaborate this branch under the dependent induction motive. -/
+private theorem mass_le_ncard_iUnion_orbit_bot [Finite G] [Finite Ω] :
+    ∀ (κ : Type w) [Fintype κ] (ω : κ → Ω) (K : κ → Subgroup G), (∀ i, K i ≤ ⊥) →
+      (∀ i, ∀ x ∈ orbit (K i) (ω i), Nat.Coprime (orbit (K i) (ω i)).ncard
+        (Nat.card (⊥ ⊓ stabilizer G x : Subgroup G))) →
+      mass (univ.biUnion fun i ↦ ((orbit (K i) (ω i)).ncard).divisors) ≤
+        (⋃ i, orbit (K i) (ω i)).ncard := by
+  intro κ _ ω K hK _
+  have hsing : ∀ i, orbit (K i) (ω i) = {ω i} := by
+    intro i
+    ext y
+    constructor
+    · rintro ⟨k, rfl⟩
+      have hk : (k : G) = 1 := Subgroup.mem_bot.mp (hK i k.2)
+      simp [Subgroup.smul_def, hk]
+    · rintro rfl
+      exact mem_orbit_self _
+  simp only [hsing, Set.ncard_singleton, Nat.divisors_one]
+  rcases isEmpty_or_nonempty κ with hκ | hne
+  · simp [mass]
+  · obtain ⟨i⟩ := hne
+    have : Nonempty κ := ⟨i⟩
+    have hb : (univ.biUnion fun _ : κ ↦ ({1} : Finset ℕ)) = {1} := by
+      ext d
+      simp
+    rw [hb]
+    simp only [mass, Finset.sum_singleton, Nat.totient_one]
+    exact (Set.ncard_pos (Set.toFinite _)).mpr ⟨ω i, Set.mem_iUnion.mpr ⟨i, rfl⟩⟩
+
+/-- One prime-normal step of the orbit-union induction.  Factoring this out
+keeps the large dependent proof term out of the `PrimeNormalChain` recursor. -/
+private theorem mass_le_ncard_iUnion_orbit_step [Finite G] [Finite Ω]
+    {H L : Subgroup G} (hLH : L ≤ H) [hN : (L.subgroupOf H).Normal]
+    (hq : (L.relIndex H).Prime)
+    (ih : ∀ (κ : Type w) [Fintype κ] (ω : κ → Ω) (K : κ → Subgroup G),
+      (∀ i, K i ≤ L) →
+      (∀ i, ∀ x ∈ orbit (K i) (ω i), Nat.Coprime (orbit (K i) (ω i)).ncard
+        (Nat.card (L ⊓ stabilizer G x : Subgroup G))) →
+      mass (univ.biUnion fun i ↦ ((orbit (K i) (ω i)).ncard).divisors) ≤
+        (⋃ i, orbit (K i) (ω i)).ncard) :
+    ∀ (κ : Type w) [Fintype κ] (ω : κ → Ω) (K : κ → Subgroup G), (∀ i, K i ≤ H) →
+      (∀ i, ∀ x ∈ orbit (K i) (ω i), Nat.Coprime (orbit (K i) (ω i)).ncard
+        (Nat.card (H ⊓ stabilizer G x : Subgroup G))) →
+      mass (univ.biUnion fun i ↦ ((orbit (K i) (ω i)).ncard).divisors) ≤
+        (⋃ i, orbit (K i) (ω i)).ncard := by
+  intro κ _ ω K hK hcop
+  classical
+  set q := L.relIndex H
+  have hqpos : 0 < q := hq.pos
+  have : Fintype (H ⧸ L.subgroupOf H) := Fintype.ofFinite _
+  have hγ : Fintype.card (H ⧸ L.subgroupOf H) = q := by
+    rw [← Nat.card_eq_fintype_card]
+    rfl
+  set W : κ → ℕ := fun i ↦ (orbit (K i) (ω i)).ncard
+  set w : κ → ℕ := fun i ↦ (orbit (K i ⊓ L : Subgroup G) (ω i)).ncard
+  have hw0 : ∀ i, w i ≠ 0 := fun i ↦
+    ((Set.ncard_pos (Set.toFinite _)).mpr ⟨ω i, mem_orbit_self _⟩).ne'
+  set cross : Finset κ :=
+    univ.filter fun i ↦ ¬ K i ≤ L ∧ stabilizer G (ω i) ⊓ K i ≤ L
+  have hcrossW : ∀ i ∈ cross, W i = q * w i := by
+    intro i hi
+    obtain ⟨hKL, hs⟩ := (Finset.mem_filter.mp hi).2
+    have e := card_orbit_inf_mul_relIndex (K i) L (ω i)
+    rw [relIndex_eq_of_not_le hq (hK i) hKL, Subgroup.relIndex_eq_one.mpr hs,
+      one_mul] at e
+    rw [mul_comm]
+    exact e.symm
+  have hlocalW : ∀ i ∉ cross, W i = w i := by
+    intro i hi
+    have e := card_orbit_inf_mul_relIndex (K i) L (ω i)
+    by_cases hKL : K i ≤ L
+    · rw [Subgroup.relIndex_eq_one.mpr hKL,
+        Subgroup.relIndex_eq_one.mpr (inf_le_right.trans hKL), mul_one, one_mul] at e
+      exact e.symm
+    · have hs : ¬ stabilizer G (ω i) ⊓ K i ≤ L := fun hs ↦
+        hi (Finset.mem_filter.mpr ⟨Finset.mem_univ _, hKL, hs⟩)
+      rw [relIndex_eq_of_not_le hq (hK i) hKL,
+        relIndex_eq_of_not_le hq (inf_le_right.trans (hK i)) hs, mul_comm] at e
+      exact (Nat.eq_of_mul_eq_mul_left hqpos e).symm
+  set J : (H ⧸ L.subgroupOf H) → Finset κ := fun c ↦
+    univ.filter fun i ↦ ∃ x ∈ orbit (K i) (ω i), orbitLabel H L x = c
+  have hallJ : ∀ i, ∃ c, i ∈ J c := fun i ↦
+    ⟨orbitLabel H L (ω i),
+      Finset.mem_filter.mpr ⟨Finset.mem_univ _, ω i, mem_orbit_self _, rfl⟩⟩
+  have hcrossJ : ∀ i ∈ cross, ∀ c, i ∈ J c := by
+    intro i hi c
+    obtain ⟨hKL, _⟩ := (Finset.mem_filter.mp hi).2
+    have hdvd : q ∣ W i := ⟨w i, hcrossW i hi⟩
+    have hc := stab_le_of_dvd hq (ω i) (hcop i (ω i) (mem_orbit_self _)) hdvd
+    have hcb := (stab_le_iff_base hLH (ω i)).mp hc
+    obtain ⟨k₀, hk₀K, hk₀L⟩ := SetLike.not_le_iff_exists.mp hKL
+    have hg₀ : ((⟨k₀, hK i hk₀K⟩ : H) : H ⧸ L.subgroupOf H) ≠ 1 := fun h ↦
+      hk₀L ((QuotientGroup.eq_one_iff (N := L.subgroupOf H)
+        (⟨k₀, hK i hk₀K⟩ : H)).mp h)
+    have : Fact q.Prime := ⟨hq⟩
+    have hcard : Nat.card (H ⧸ L.subgroupOf H) = q := by
+      rw [Nat.card_eq_fintype_card, hγ]
+    obtain ⟨m, hm⟩ := Subgroup.mem_zpowers_iff.mp
+      (mem_zpowers_of_prime_card hcard hg₀ (g' := c * (orbitLabel H L (ω i))⁻¹))
+    refine Finset.mem_filter.mpr ⟨Finset.mem_univ _,
+      ((⟨k₀, hk₀K⟩ : K i) ^ m) • ω i, mem_orbit _ _, ?_⟩
+    have hsm : ((⟨k₀, hk₀K⟩ : K i) ^ m) • ω i = ((⟨k₀, hK i hk₀K⟩ : H) ^ m) • ω i := by
+      simp [Subgroup.smul_def]
+    rw [hsm, orbitLabel_smul hcb, QuotientGroup.mk_zpow, hm, inv_mul_cancel_right]
+  set U := ⋃ i, orbit (K i) (ω i) with hU
+  have hfib : ∀ c, mass ((J c).biUnion fun i ↦ (w i).divisors) ≤
+      (U ∩ {x | orbitLabel H L x = c}).ncard := by
+    intro c
+    rcases (J c).eq_empty_or_nonempty with hJc | _
+    · simp [hJc, mass]
+    have hx : ∀ i : J c, ∃ x ∈ orbit (K i) (ω i), orbitLabel H L x = c :=
+      fun i ↦ (Finset.mem_filter.mp i.2).2
+    choose x hxO hxl using hx
+    have hOx : ∀ i : J c, orbit (K i) (x i) = orbit (K i) (ω i) := fun i ↦
+      orbit_eq_iff.mpr (hxO i)
+    have hPc : ∀ i : J c, (orbit (K i ⊓ L : Subgroup G) (x i)).ncard = w i := by
+      intro i
+      obtain ⟨k, hk⟩ := hxO i
+      dsimp only at hk
+      rw [← hk, Subgroup.smul_def]
+      exact ncard_orbit_inf_smul hLH hq (hK i) k (ω i)
+    have hsubO : ∀ i : J c, orbit (K i ⊓ L : Subgroup G) (x i) ⊆ orbit (K i) (ω i) := by
+      intro i
+      rw [← hOx i]
+      rintro _ ⟨n, rfl⟩
+      exact ⟨⟨n, (Subgroup.mem_inf.mp n.2).1⟩, by simp [Subgroup.smul_def]⟩
+    have hUc : U ∩ {x | orbitLabel H L x = c} =
+        ⋃ i : J c, orbit (K i ⊓ L : Subgroup G) (x i) := by
+      ext y
+      simp only [hU, Set.mem_inter_iff, Set.mem_iUnion, Set.mem_ofPred_eq]
+      constructor
+      · rintro ⟨⟨i, hyi⟩, hyl⟩
+        have hiJ : i ∈ J c := Finset.mem_filter.mpr ⟨Finset.mem_univ _, y, hyi, hyl⟩
+        refine ⟨⟨i, hiJ⟩, ?_⟩
+        have hy' : y ∈ orbit (K i) (x ⟨i, hiJ⟩) := (hOx ⟨i, hiJ⟩) ▸ hyi
+        refine mem_orbit_inf_of_label hLH hq (hK i) hy' ?_ ?_
+        · rw [hOx ⟨i, hiJ⟩]
+          exact hcop i _ (hxO ⟨i, hiJ⟩)
+        · rw [hyl, hxl]
+      · rintro ⟨i, hyi⟩
+        refine ⟨⟨i, hsubO i hyi⟩, ?_⟩
+        obtain ⟨n, rfl⟩ := hyi
+        dsimp only
+        have hn : n • x i = (⟨n, hK i (Subgroup.mem_inf.mp n.2).1⟩ : H) • x i := by
+          simp [Subgroup.smul_def]
+        rw [hn, orbitLabel_smul_of_mem (H := H) (L := L) (x i)
+          ⟨n, hK i (Subgroup.mem_inf.mp n.2).1⟩ (Subgroup.mem_inf.mp n.2).2, hxl]
+    have hIH := ih (J c) (fun i ↦ x i) (fun i ↦ K i ⊓ L) (fun _ ↦ inf_le_right) (by
+      intro i z hz
+      rw [hPc i]
+      have hwW : w i ∣ W i := by
+        by_cases hi : (i : κ) ∈ cross
+        · exact ⟨q, by rw [hcrossW i hi, mul_comm]⟩
+        · rw [hlocalW i hi]
+      have hdc : Nat.card (L ⊓ stabilizer G z : Subgroup G) ∣
+          Nat.card (H ⊓ stabilizer G z : Subgroup G) :=
+        Subgroup.card_dvd_of_le (inf_le_inf_right _ hLH)
+      exact Nat.Coprime.coprime_dvd_right hdc
+        (Nat.Coprime.coprime_dvd_left hwW (hcop i z (hsubO i hz))))
+    have hmass : ((J c).biUnion fun i ↦ (w i).divisors) =
+        univ.biUnion (fun i : J c ↦
+          ((orbit (K i ⊓ L : Subgroup G) (x i)).ncard).divisors) := by
+      rw [← biUnion_subtype_univ (J c) (fun i ↦ (w i).divisors)]
+      exact Finset.biUnion_congr rfl fun i _ ↦ by rw [hPc i]
+    rw [hmass, hUc]
+    exact hIH
+  calc mass (univ.biUnion fun i ↦ ((orbit (K i) (ω i)).ncard).divisors)
+      = mass (univ.biUnion fun i ↦ (W i).divisors) := rfl
+    _ ≤ ∑ c, mass ((J c).biUnion fun i ↦ (w i).divisors) :=
+        mass_biUnion_le_sum_mass_fiber hq.ne_zero hγ w W hw0 J cross hcrossW hlocalW
+          hcrossJ hallJ
+    _ ≤ ∑ c, (U ∩ {x | orbitLabel H L x = c}).ncard :=
+        Finset.sum_le_sum fun c _ ↦ hfib c
+    _ = U.ncard := (ncard_eq_sum_ncard_label U _).symm
+
 /-- **Lemma O (orbit union bound)**, along a prime-normal chain.  If `G` acts on
 the finite set `Ω`, `Kᵢ ≤ H`, and each `|Oᵢ| = |Kᵢ • ωᵢ|` is coprime to
 `|H ⊓ G_x|` for every `x ∈ Oᵢ`, then the divisor mass of the `|Oᵢ|` is at most
@@ -316,158 +492,9 @@ theorem mass_le_ncard_iUnion_orbit [Finite G] [Finite Ω] {H : Subgroup G}
       mass (univ.biUnion fun i ↦ ((orbit (K i) (ω i)).ncard).divisors) ≤
         (⋃ i, orbit (K i) (ω i)).ncard := by
   induction c with
-  | bot =>
-    intro κ _ ω K hK _
-    have hsing : ∀ i, orbit (K i) (ω i) = {ω i} := by
-      intro i
-      ext y
-      constructor
-      · rintro ⟨k, rfl⟩
-        have hk : (k : G) = 1 := Subgroup.mem_bot.mp (hK i k.2)
-        simp [Subgroup.smul_def, hk]
-      · rintro rfl
-        exact mem_orbit_self _
-    simp only [hsing, Set.ncard_singleton, Nat.divisors_one]
-    rcases isEmpty_or_nonempty κ with hκ | hne
-    · simp [mass]
-    · obtain ⟨i⟩ := hne
-      have : Nonempty κ := ⟨i⟩
-      have hb : (univ.biUnion fun _ : κ ↦ ({1} : Finset ℕ)) = {1} := by
-        ext d
-        simp
-      rw [hb]
-      simp only [mass, Finset.sum_singleton, Nat.totient_one]
-      exact (Set.ncard_pos (Set.toFinite _)).mpr ⟨ω i, Set.mem_iUnion.mpr ⟨i, rfl⟩⟩
+  | bot => exact mass_le_ncard_iUnion_orbit_bot
   | @step H L hLH hN hq tail ih =>
-    intro κ _ ω K hK hcop
-    classical
-    set q := L.relIndex H with hq_def
-    have hqpos : 0 < q := hq.pos
-    have : Fintype (H ⧸ L.subgroupOf H) := Fintype.ofFinite _
-    have hγ : Fintype.card (H ⧸ L.subgroupOf H) = q := by
-      rw [← Nat.card_eq_fintype_card]
-      rfl
-    set W : κ → ℕ := fun i ↦ (orbit (K i) (ω i)).ncard with hW
-    set w : κ → ℕ := fun i ↦ (orbit (K i ⊓ L : Subgroup G) (ω i)).ncard with hw
-    have hw0 : ∀ i, w i ≠ 0 := fun i ↦
-      ((Set.ncard_pos (Set.toFinite _)).mpr ⟨ω i, mem_orbit_self _⟩).ne'
-    set cross : Finset κ :=
-      univ.filter fun i ↦ ¬ K i ≤ L ∧ stabilizer G (ω i) ⊓ K i ≤ L with hcross
-    have hcrossW : ∀ i ∈ cross, W i = q * w i := by
-      intro i hi
-      obtain ⟨hKL, hs⟩ := (Finset.mem_filter.mp hi).2
-      have e := card_orbit_inf_mul_relIndex (K i) L (ω i)
-      rw [relIndex_eq_of_not_le hq (hK i) hKL, Subgroup.relIndex_eq_one.mpr hs,
-        one_mul] at e
-      rw [mul_comm]
-      exact e.symm
-    have hlocalW : ∀ i ∉ cross, W i = w i := by
-      intro i hi
-      have e := card_orbit_inf_mul_relIndex (K i) L (ω i)
-      by_cases hKL : K i ≤ L
-      · rw [Subgroup.relIndex_eq_one.mpr hKL,
-          Subgroup.relIndex_eq_one.mpr (inf_le_right.trans hKL), mul_one, one_mul] at e
-        exact e.symm
-      · have hs : ¬ stabilizer G (ω i) ⊓ K i ≤ L := fun hs ↦
-          hi (Finset.mem_filter.mpr ⟨Finset.mem_univ _, hKL, hs⟩)
-        rw [relIndex_eq_of_not_le hq (hK i) hKL,
-          relIndex_eq_of_not_le hq (inf_le_right.trans (hK i)) hs, mul_comm] at e
-        exact (Nat.eq_of_mul_eq_mul_left hqpos e).symm
-    set J : (H ⧸ L.subgroupOf H) → Finset κ := fun c ↦
-      univ.filter fun i ↦ ∃ x ∈ orbit (K i) (ω i), orbitLabel H L x = c with hJ
-    have hallJ : ∀ i, ∃ c, i ∈ J c := fun i ↦
-      ⟨orbitLabel H L (ω i),
-        Finset.mem_filter.mpr ⟨Finset.mem_univ _, ω i, mem_orbit_self _, rfl⟩⟩
-    have hcrossJ : ∀ i ∈ cross, ∀ c, i ∈ J c := by
-      intro i hi c
-      obtain ⟨hKL, _⟩ := (Finset.mem_filter.mp hi).2
-      have hdvd : q ∣ W i := ⟨w i, hcrossW i hi⟩
-      have hc := stab_le_of_dvd hq (ω i) (hcop i (ω i) (mem_orbit_self _)) hdvd
-      have hcb := (stab_le_iff_base hLH (ω i)).mp hc
-      obtain ⟨k₀, hk₀K, hk₀L⟩ := SetLike.not_le_iff_exists.mp hKL
-      have hg₀ : ((⟨k₀, hK i hk₀K⟩ : H) : H ⧸ L.subgroupOf H) ≠ 1 := fun h ↦
-        hk₀L ((QuotientGroup.eq_one_iff (N := L.subgroupOf H)
-          (⟨k₀, hK i hk₀K⟩ : H)).mp h)
-      have : Fact q.Prime := ⟨hq⟩
-      have hcard : Nat.card (H ⧸ L.subgroupOf H) = q := by
-        rw [Nat.card_eq_fintype_card, hγ]
-      obtain ⟨m, hm⟩ := Subgroup.mem_zpowers_iff.mp
-        (mem_zpowers_of_prime_card hcard hg₀ (g' := c * (orbitLabel H L (ω i))⁻¹))
-      refine Finset.mem_filter.mpr ⟨Finset.mem_univ _,
-        ((⟨k₀, hk₀K⟩ : K i) ^ m) • ω i, mem_orbit _ _, ?_⟩
-      have hsm : ((⟨k₀, hk₀K⟩ : K i) ^ m) • ω i = ((⟨k₀, hK i hk₀K⟩ : H) ^ m) • ω i := by
-        simp [Subgroup.smul_def]
-      rw [hsm, orbitLabel_smul hcb, QuotientGroup.mk_zpow, hm, inv_mul_cancel_right]
-    set U := ⋃ i, orbit (K i) (ω i) with hU
-    have hfib : ∀ c, mass ((J c).biUnion fun i ↦ (w i).divisors) ≤
-        (U ∩ {x | orbitLabel H L x = c}).ncard := by
-      intro c
-      rcases (J c).eq_empty_or_nonempty with hJc | _
-      · simp [hJc, mass]
-      have hx : ∀ i : J c, ∃ x ∈ orbit (K i) (ω i), orbitLabel H L x = c :=
-        fun i ↦ (Finset.mem_filter.mp i.2).2
-      choose x hxO hxl using hx
-      have hOx : ∀ i : J c, orbit (K i) (x i) = orbit (K i) (ω i) := fun i ↦
-        orbit_eq_iff.mpr (hxO i)
-      have hPc : ∀ i : J c, (orbit (K i ⊓ L : Subgroup G) (x i)).ncard = w i := by
-        intro i
-        obtain ⟨k, hk⟩ := hxO i
-        dsimp only at hk
-        rw [← hk, Subgroup.smul_def]
-        exact ncard_orbit_inf_smul hLH hq (hK i) k (ω i)
-      have hsubO : ∀ i : J c, orbit (K i ⊓ L : Subgroup G) (x i) ⊆ orbit (K i) (ω i) := by
-        intro i
-        rw [← hOx i]
-        rintro _ ⟨n, rfl⟩
-        exact ⟨⟨n, (Subgroup.mem_inf.mp n.2).1⟩, by simp [Subgroup.smul_def]⟩
-      have hUc : U ∩ {x | orbitLabel H L x = c} =
-          ⋃ i : J c, orbit (K i ⊓ L : Subgroup G) (x i) := by
-        ext y
-        simp only [hU, Set.mem_inter_iff, Set.mem_iUnion, Set.mem_ofPred_eq]
-        constructor
-        · rintro ⟨⟨i, hyi⟩, hyl⟩
-          have hiJ : i ∈ J c := Finset.mem_filter.mpr ⟨Finset.mem_univ _, y, hyi, hyl⟩
-          refine ⟨⟨i, hiJ⟩, ?_⟩
-          have hy' : y ∈ orbit (K i) (x ⟨i, hiJ⟩) := (hOx ⟨i, hiJ⟩) ▸ hyi
-          refine mem_orbit_inf_of_label hLH hq (hK i) hy' ?_ ?_
-          · rw [hOx ⟨i, hiJ⟩]
-            exact hcop i _ (hxO ⟨i, hiJ⟩)
-          · rw [hyl, hxl]
-        · rintro ⟨i, hyi⟩
-          refine ⟨⟨i, hsubO i hyi⟩, ?_⟩
-          obtain ⟨n, rfl⟩ := hyi
-          dsimp only
-          have hn : n • x i = (⟨n, hK i (Subgroup.mem_inf.mp n.2).1⟩ : H) • x i := by
-            simp [Subgroup.smul_def]
-          rw [hn, orbitLabel_smul_of_mem (H := H) (L := L) (x i)
-            ⟨n, hK i (Subgroup.mem_inf.mp n.2).1⟩ (Subgroup.mem_inf.mp n.2).2, hxl]
-      have hIH := ih (J c) (fun i ↦ x i) (fun i ↦ K i ⊓ L) (fun _ ↦ inf_le_right) (by
-        intro i z hz
-        rw [hPc i]
-        have hwW : w i ∣ W i := by
-          by_cases hi : (i : κ) ∈ cross
-          · exact ⟨q, by rw [hcrossW i hi, mul_comm]⟩
-          · rw [hlocalW i hi]
-        have hdc : Nat.card (L ⊓ stabilizer G z : Subgroup G) ∣
-            Nat.card (H ⊓ stabilizer G z : Subgroup G) :=
-          Subgroup.card_dvd_of_le (inf_le_inf_right _ hLH)
-        exact Nat.Coprime.coprime_dvd_right hdc
-          (Nat.Coprime.coprime_dvd_left hwW (hcop i z (hsubO i hz))))
-      have hmass : ((J c).biUnion fun i ↦ (w i).divisors) =
-          univ.biUnion (fun i : J c ↦
-            ((orbit (K i ⊓ L : Subgroup G) (x i)).ncard).divisors) := by
-        rw [← biUnion_subtype_univ (J c) (fun i ↦ (w i).divisors)]
-        exact Finset.biUnion_congr rfl fun i _ ↦ by rw [hPc i]
-      rw [hmass, hUc]
-      exact hIH
-    calc mass (univ.biUnion fun i ↦ ((orbit (K i) (ω i)).ncard).divisors)
-        = mass (univ.biUnion fun i ↦ (W i).divisors) := rfl
-      _ ≤ ∑ c, mass ((J c).biUnion fun i ↦ (w i).divisors) :=
-          mass_biUnion_le_sum_mass_fiber hq.ne_zero hγ w W hw0 J cross hcrossW hlocalW
-            hcrossJ hallJ
-      _ ≤ ∑ c, (U ∩ {x | orbitLabel H L x = c}).ncard :=
-          Finset.sum_le_sum fun c _ ↦ hfib c
-      _ = U.ncard := (ncard_eq_sum_ncard_label U _).symm
+      exact mass_le_ncard_iUnion_orbit_step hLH hq ih
 
 /-- In `G ⧸ X` every point stabiliser has the order of `X`. -/
 lemma card_stabilizer_quotient [Finite G] (X : Subgroup G) (x : G ⧸ X) :
