@@ -122,6 +122,73 @@ theorem sOrd_le_sum {p : ℕ} (k : ℕ → ℕ) (hk : ∀ q ∈ p.primesBelow, k
   rw [inv_le_inv₀ (by positivity) (by positivity)]
   exact hle
 
+/-! ### Uniform bounds, with no case analysis
+
+Two facts hold at every prime at once, with no order table:
+
+* `lt_pow_ordMod` — `p < q^{ord_p q}`, because `p ∣ q^{ord_p q} − 1` and that
+  number is positive.  So **every** term of `S_p` is below `1/(p+1)`.
+* `two_le_ordMod` — `ord_p q ≥ 2` for `q < p`, since `ord_p q = 1` would put
+  `q ≡ 1 (mod p)` with `0 < q − 1 < p`.
+
+`sOrd_le_card_div` is the uniform bound they give.  It is the shape of the
+large-`p` argument of (CE) §2–§3, and it is **not strong enough below
+`p = 37`**: at `p = 31` it yields `S₃₁ ≤ 10/32`, while the criterion needs
+`S₃₁ < 0.132`.  Refining it by `q^{ord_p q} ≥ q²` (from `two_le_ordMod`) to
+`∑_q min(q⁻², (p+1)⁻¹)` clears every `p ≥ 37` but still fails at every
+`p ≤ 31`.  That is not an artefact of this formalisation: `S_p` is erratic in
+the small range — `S₂₉ ≈ 1.3·10⁻⁵` against `S₃₁ ≈ 3.9·10⁻²`, a factor of
+3000 between adjacent primes — so no uniform bound can separate them, and the
+per-prime orders are the only way through.  Hence the table below. -/
+
+/-- `p < q^{ord_p q}`: the order of `q` is large enough that `q^{ord_p q} − 1`,
+which `p` divides, is at least `p`. -/
+theorem lt_pow_ordMod {p q : ℕ} (hp : p.Prime) (hq : q.Prime) (hqp : q < p) :
+    p < q ^ ordMod p q := by
+  have : Fact p.Prime := ⟨hp⟩
+  have hord : 0 < ordMod p q :=
+    ordMod_pos_of_mem hp (Nat.mem_primesBelow.mpr ⟨hqp, hq⟩)
+  have hpow1 : 1 ≤ q ^ ordMod p q := Nat.one_le_pow _ _ hq.pos
+  have h1 : ((q : ℕ) : ZMod p) ^ ordMod p q = 1 := pow_orderOf_eq_one _
+  have h2 : ((q ^ ordMod p q : ℕ) : ZMod p) = 1 := by push_cast; exact h1
+  have h3 : ((q ^ ordMod p q - 1 : ℕ) : ZMod p) = 0 := by
+    rw [Nat.cast_sub hpow1, h2, Nat.cast_one, sub_self]
+  have h4 : p ∣ q ^ ordMod p q - 1 := (ZMod.natCast_eq_zero_iff _ _).mp h3
+  have h5 : 1 < q ^ ordMod p q := Nat.one_lt_pow hord.ne' hq.one_lt
+  have h6 := Nat.le_of_dvd (by omega) h4
+  omega
+
+/-- `ord_p q ≥ 2` for a prime `q < p`: order one would mean `p ∣ q − 1`. -/
+theorem two_le_ordMod {p q : ℕ} (hp : p.Prime) (hq : q.Prime) (hqp : q < p) :
+    2 ≤ ordMod p q := by
+  have h := lt_pow_ordMod hp hq hqp
+  have hpos : 0 < ordMod p q :=
+    ordMod_pos_of_mem hp (Nat.mem_primesBelow.mpr ⟨hqp, hq⟩)
+  by_contra hlt
+  have h1 : ordMod p q = 1 := by omega
+  rw [h1, pow_one] at h
+  omega
+
+/-- **The uniform bound.**  Every term of `S_p` is at most `1/(p+1)`, so
+`S_p ≤ π(p)/(p+1)` with no reference to any individual order.  See the section
+comment for why this does not reach the primes below `37`. -/
+theorem sOrd_le_card_div {p : ℕ} (hp : p.Prime) :
+    sOrd p ≤ (p.primesBelow.card : ℚ) / ((p : ℚ) + 1) := by
+  have hp0 : (0 : ℚ) < (p : ℚ) + 1 := by positivity
+  have hterm : ∀ q ∈ p.primesBelow, ((q : ℚ) ^ ordMod p q)⁻¹ ≤ ((p : ℚ) + 1)⁻¹ := by
+    intro q hq
+    have hlt := lt_pow_ordMod hp (Nat.prime_of_mem_primesBelow hq)
+      (Nat.lt_of_mem_primesBelow hq)
+    have hge : (p : ℚ) + 1 ≤ (q : ℚ) ^ ordMod p q := by
+      have hn : (p + 1 : ℕ) ≤ q ^ ordMod p q := hlt
+      exact_mod_cast hn
+    rw [inv_le_inv₀ (lt_of_lt_of_le hp0 hge) hp0]
+    exact hge
+  calc sOrd p ≤ ∑ _q ∈ p.primesBelow, ((p : ℚ) + 1)⁻¹ :=
+        Finset.sum_le_sum hterm
+    _ = (p.primesBelow.card : ℚ) / ((p : ℚ) + 1) := by
+        rw [Finset.sum_const, nsmul_eq_mul, div_eq_mul_inv]
+
 /-! ### The bridge to `M_G′`
 
 `MassForm.MG G p` is `mertensProd` over the primes of `|G|` other than `p`.
