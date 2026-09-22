@@ -189,6 +189,85 @@ theorem sOrd_le_card_div {p : ℕ} (hp : p.Prime) :
     _ = (p.primesBelow.card : ℚ) / ((p : ℚ) + 1) := by
         rw [Finset.sum_const, nsmul_eq_mul, div_eq_mul_inv]
 
+/-! ### The order-free bound on `S_p`, and how it transports across a range
+
+`q^{ord_p q} ≥ max(q², p+1)` — `two_le_ordMod` and `lt_pow_ordMod` — so
+
+    S_p ≤ rangeBound p p = ∑_{q < p} min(q⁻², (p+1)⁻¹),
+
+with no reference to any individual order.  This is what replaces (CE) §3's
+case analysis on `f₂, f₃, f₅, f₇` and its two exceptional primes `73, 127`:
+the bound above clears every prime from `37` on, uniformly.
+
+`rangeBound a b` is the same sum with the index set widened to `b` and the
+cut-off relaxed to `a`, so it dominates `rangeBound p p` for every `p` in
+`[a, b]`.  One rational certificate then serves a whole range of primes. -/
+
+/-- `∑_{q < b} min(q⁻², (a+1)⁻¹)`: an upper bound for `S_p` valid for every
+prime `p` with `a ≤ p ≤ b`. -/
+noncomputable def rangeBound (a b : ℕ) : ℚ :=
+  ∑ q ∈ b.primesBelow, min (((q : ℚ) ^ 2)⁻¹) (((a : ℚ) + 1)⁻¹)
+
+theorem rangeBound_def (a b : ℕ) :
+    rangeBound a b = ∑ q ∈ b.primesBelow, min (((q : ℚ) ^ 2)⁻¹) (((a : ℚ) + 1)⁻¹) :=
+  rfl
+
+theorem rangeBound_nonneg (a b : ℕ) : 0 ≤ rangeBound a b :=
+  Finset.sum_nonneg fun q _ ↦ le_min (by positivity) (by positivity)
+
+/-- **The order-free bound.**  Every term of `S_p` is at most both `q⁻²` and
+`(p+1)⁻¹`. -/
+theorem sOrd_le_rangeBound_self {p : ℕ} (hp : p.Prime) : sOrd p ≤ rangeBound p p := by
+  rw [sOrd_def, rangeBound_def]
+  refine Finset.sum_le_sum fun q hq ↦ ?_
+  have hqpr := Nat.prime_of_mem_primesBelow hq
+  have hqp := Nat.lt_of_mem_primesBelow hq
+  have hq0 : (0 : ℚ) < (q : ℚ) := by exact_mod_cast hqpr.pos
+  have hq1 : (1 : ℚ) ≤ (q : ℚ) := by exact_mod_cast hqpr.one_lt.le
+  have hpow : (0 : ℚ) < (q : ℚ) ^ ordMod p q := by positivity
+  refine le_min ?_ ?_
+  · have h2 : (q : ℚ) ^ 2 ≤ (q : ℚ) ^ ordMod p q :=
+      pow_le_pow_right₀ hq1 (two_le_ordMod hp hqpr hqp)
+    rw [inv_le_inv₀ hpow (by positivity)]
+    exact h2
+  · have hn : (p + 1 : ℕ) ≤ q ^ ordMod p q := lt_pow_ordMod hp hqpr hqp
+    have hge : (p : ℚ) + 1 ≤ (q : ℚ) ^ ordMod p q := by exact_mod_cast hn
+    rw [inv_le_inv₀ hpow (by positivity)]
+    exact hge
+
+theorem primesBelow_mono {m n : ℕ} (h : m ≤ n) : m.primesBelow ⊆ n.primesBelow := by
+  intro q hq
+  rw [Nat.mem_primesBelow] at hq ⊢
+  exact ⟨lt_of_lt_of_le hq.1 h, hq.2⟩
+
+/-- `Π_p` is monotone in `p`: more primes, more factors, each at least `1`. -/
+theorem piBelow_mono {m n : ℕ} (h : m ≤ n) : piBelow m ≤ piBelow n :=
+  mertensProd_le_of_subset (fun _ hq ↦ Nat.prime_of_mem_primesBelow hq)
+    (primesBelow_mono h)
+
+/-- One certificate for a whole range: widening the index set and relaxing the
+cut-off both only increase the bound. -/
+theorem rangeBound_mono {a b p : ℕ} (hap : a ≤ p) (hpb : p ≤ b) :
+    rangeBound p p ≤ rangeBound a b := by
+  have hcut : ((p : ℚ) + 1)⁻¹ ≤ ((a : ℚ) + 1)⁻¹ := by
+    have ha0 : (0 : ℚ) < (a : ℚ) + 1 := by positivity
+    have hle : (a : ℚ) + 1 ≤ (p : ℚ) + 1 := by
+      have : (a : ℚ) ≤ (p : ℚ) := by exact_mod_cast hap
+      linarith
+    rw [inv_le_inv₀ (lt_of_lt_of_le ha0 hle) ha0]
+    exact hle
+  calc rangeBound p p
+      ≤ ∑ q ∈ p.primesBelow, min (((q : ℚ) ^ 2)⁻¹) (((a : ℚ) + 1)⁻¹) :=
+        Finset.sum_le_sum fun q _ ↦ min_le_min le_rfl hcut
+    _ ≤ rangeBound a b :=
+        Finset.sum_le_sum_of_subset_of_nonneg (primesBelow_mono hpb)
+          fun q _ _ ↦ le_min (by positivity) (by positivity)
+
+/-- `S_p ≤ rangeBound a b` for every prime `p` in `[a, b]`. -/
+theorem sOrd_le_rangeBound {a b p : ℕ} (hp : p.Prime) (hap : a ≤ p) (hpb : p ≤ b) :
+    sOrd p ≤ rangeBound a b :=
+  (sOrd_le_rangeBound_self hp).trans (rangeBound_mono hap hpb)
+
 /-! ### The bridge to `M_G′`
 
 `MassForm.MG G p` is `mertensProd` over the primes of `|G|` other than `p`.
