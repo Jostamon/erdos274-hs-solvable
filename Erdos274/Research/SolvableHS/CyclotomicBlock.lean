@@ -297,14 +297,11 @@ theorem cyclotomic_block [Group.IsSolvable H] {p : ℕ} [Fact p.Prime] {K Q W : 
     _ = M.relIndex K := hc.symm.trans hcardA
     _ ∣ W.relIndex K := Dvd.intro_left _ (Subgroup.relIndex_mul_relIndex W M K hWM hMK)
 
-/-- **(CB) in index form.**  If `K ⊔ Q = H` and `Y < H` has `p ∤ [H : Y]`, then
-some prime `q ∣ |K|` has `q^{ord_p q} ∣ [H : Y]`. -/
-theorem cyclotomic_block_index [Group.IsSolvable H] {p : ℕ} [Fact p.Prime]
-    {K Q Y : Subgroup H} [K.Normal] (hQ : IsPGroup p Q) (hK : ¬ p ∣ Nat.card K)
-    (hKQ : ⁅K, Q⁆ = K) (hsup : K ⊔ Q = ⊤) (hY : Y ≠ ⊤) (hpY : ¬ p ∣ Y.index) :
-    ∃ q, q.Prime ∧ q ∣ Nat.card K ∧ q ^ orderOf (q : ZMod p) ∣ Y.index := by
+/-- **A `p`-group conjugates into a subgroup of `p′`-index**: `Q` fixes a point
+`gY` of `H/Y`, since `p ∤ |H/Y|`, and then `g⁻¹Qg ≤ Y`. -/
+theorem exists_conj_mem_of_not_dvd {p : ℕ} [Fact p.Prime] {Q Y : Subgroup H}
+    (hQ : IsPGroup p Q) (hpY : ¬ p ∣ Y.index) : ∃ g : H, ∀ x ∈ Q, g⁻¹ * x * g ∈ Y := by
   classical
-  -- a fixed point `gY` of `Q` on `H/Y`, since `p ∤ |H/Y|`
   obtain ⟨c, hc⟩ : (fixedPoints Q (H ⧸ Y)).Nonempty := by
     by_contra hne
     rw [Set.not_nonempty_iff_eq_empty] at hne
@@ -313,11 +310,18 @@ theorem cyclotomic_block_index [Group.IsSolvable H] {p : ℕ} [Fact p.Prime]
     simp only [Nat.card_of_isEmpty] at hmod
     exact hpY ((Nat.modEq_zero_iff_dvd).mp hmod)
   obtain ⟨g, rfl⟩ := QuotientGroup.mk_surjective c
-  have hgx : ∀ x ∈ Q, g⁻¹ * x * g ∈ Y := by
-    intro x hx
-    have h := hc ⟨x⁻¹, Q.inv_mem hx⟩
-    rw [Subgroup.smul_def, MulAction.Quotient.smul_mk, smul_eq_mul, QuotientGroup.eq] at h
-    simpa [mul_assoc] using h
+  refine ⟨g, fun x hx ↦ ?_⟩
+  have h := hc ⟨x⁻¹, Q.inv_mem hx⟩
+  rw [Subgroup.smul_def, MulAction.Quotient.smul_mk, smul_eq_mul, QuotientGroup.eq] at h
+  simpa [mul_assoc] using h
+
+/-- **(CB) in index form.**  If `K ⊔ Q = H` and `Y < H` has `p ∤ [H : Y]`, then
+some prime `q ∣ |K|` has `q^{ord_p q} ∣ [H : Y]`. -/
+theorem cyclotomic_block_index [Group.IsSolvable H] {p : ℕ} [Fact p.Prime]
+    {K Q Y : Subgroup H} [K.Normal] (hQ : IsPGroup p Q) (hK : ¬ p ∣ Nat.card K)
+    (hKQ : ⁅K, Q⁆ = K) (hsup : K ⊔ Q = ⊤) (hY : Y ≠ ⊤) (hpY : ¬ p ∣ Y.index) :
+    ∃ q, q.Prime ∧ q ∣ Nat.card K ∧ q ^ orderOf (q : ZMod p) ∣ Y.index := by
+  obtain ⟨g, hgx⟩ := exists_conj_mem_of_not_dvd hQ hpY
   -- conjugate `Y` so that it contains `Q`
   set Y₁ := Y.map ((MulAut.conj g : H ≃* H) : H →* H) with hY₁
   have hidx : Y₁.index = Y.index := Subgroup.index_map_equiv Y (MulAut.conj g)

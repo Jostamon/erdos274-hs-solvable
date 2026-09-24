@@ -86,18 +86,18 @@ section Cells
 variable {G : Type u} [Group G] [Fintype G] {κ : Type v} [Fintype κ]
   (C : Group.ExactCovering G κ) (F : Subgroup G)
 
-/-- **Parts with coprime local indices share no `F`-coset.** -/
-theorem eq_of_meet_of_coprime {j k : κ} {δ : G ⧸ F} (hδj : δ ∈ shadow C F j)
-    (hδk : δ ∈ shadow C F k) (hcop : Nat.Coprime (loc C F j) (loc C F k)) : j = k := by
+/-- **Parts whose subgroups multiply out to `F` share no `F`-coset**: their
+cells in it would meet. -/
+theorem eq_of_meet_of_mul {j k : κ} {δ : G ⧸ F} (hδj : δ ∈ shadow C F j)
+    (hδk : δ ∈ shadow C F k)
+    (hmul : ∀ f ∈ F, ∃ a ∈ C.parts j ⊓ F, ∃ b ∈ C.parts k ⊓ F, f = a * b) : j = k := by
   obtain ⟨x₀, hx₀⟩ : (NormaliserSlice.piece C F j δ).Nonempty := hδj
   obtain ⟨y₀, hy₀⟩ : (NormaliserSlice.piece C F k δ).Nonempty := hδk
   have hf : x₀⁻¹ * y₀ ∈ F := by
     have hx := ((NormaliserSlice.mem_piece C F).mp hx₀).2
     have hy := ((NormaliserSlice.mem_piece C F).mp hy₀).2
     exact QuotientGroup.eq.mp (hx.trans hy.symm)
-  have hcop' : Nat.Coprime ((C.parts j ⊓ F).relIndex F) ((C.parts k ⊓ F).relIndex F) := by
-    rwa [Subgroup.inf_relIndex_right, Subgroup.inf_relIndex_right]
-  obtain ⟨a, ha, b, hb, hab⟩ := exists_mul_of_coprime inf_le_right inf_le_right hcop' hf
+  obtain ⟨a, ha, b, hb, hab⟩ := hmul _ hf
   have hz : x₀ * a = y₀ * b⁻¹ := by
     calc x₀ * a = x₀ * (x₀⁻¹ * y₀) * b⁻¹ := by rw [hab]; group
       _ = y₀ * b⁻¹ := by group
@@ -109,6 +109,14 @@ theorem eq_of_meet_of_coprime {j k : κ} {δ : G ⧸ F} (hδj : δ ∈ shadow C 
       (by simpa using (C.parts k ⊓ F).inv_mem hb)
   exact NormaliserSlice.eq_of_mem_cell C ((NormaliserSlice.mem_piece C F).mp hzj).1
     ((NormaliserSlice.mem_piece C F).mp hzk).1
+
+/-- **Parts with coprime local indices share no `F`-coset.** -/
+theorem eq_of_meet_of_coprime {j k : κ} {δ : G ⧸ F} (hδj : δ ∈ shadow C F j)
+    (hδk : δ ∈ shadow C F k) (hcop : Nat.Coprime (loc C F j) (loc C F k)) : j = k := by
+  have hcop' : Nat.Coprime ((C.parts j ⊓ F).relIndex F) ((C.parts k ⊓ F).relIndex F) := by
+    rwa [Subgroup.inf_relIndex_right, Subgroup.inf_relIndex_right]
+  exact eq_of_meet_of_mul C F hδj hδk fun f hf ↦
+    exists_mul_of_coprime inf_le_right inf_le_right hcop' hf
 
 /-- A part sharing an `F`-coset with a part of prime local index `p` has
 `p ∣ ℓ`. -/
