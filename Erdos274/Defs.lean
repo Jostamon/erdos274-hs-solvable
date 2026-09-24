@@ -32,14 +32,21 @@ open scoped Pointwise
 
 namespace Erdos274
 
-/-- An exact covering of a group `G` is a finite collection of subgroups
-`H i` with representatives `g i` such that the cosets `g i • H i` are pairwise
-disjoint and cover `G`. -/
+/-- An exact covering of a group `G` is a finite collection of subgroups `{H_1, ..., H_k}` and
+representative `{g_1, ..., g_k}` such that the cosets `g_iH_i` are pairwise disjoint and their
+union covers `G`.
+
+Field for field (names, types and order) this is the upstream
+`Erdos274.Group.ExactCovering` of formal-conjectures, so every statement about it here is a
+statement about the upstream structure.  The `nonempty` field is automatic for subgroups
+(`OneMemClass.coe_nonempty`) and is kept only for that match. -/
 structure Group.ExactCovering (G : Type*) [Group G] (ι : Type*) [Fintype ι] where
   /-- The subgroups whose cosets form the partition. -/
   parts : ι → Subgroup G
   /-- A representative for each coset. -/
   reps : ι → G
+  /-- Each part is nonempty (automatic for a subgroup; present upstream). -/
+  nonempty (i : ι) : (parts i : Set G).Nonempty
   disjoint : (Set.univ (α := ι)).PairwiseDisjoint fun i ↦ reps i • (parts i : Set G)
   covers : ⋃ i, reps i • (parts i : Set G) = Set.univ
 
@@ -79,6 +86,7 @@ def quotient (N : Subgroup G) [N.Normal] (hfull : ∀ j, N ≤ P.parts j) :
     Group.ExactCovering (G ⧸ N) ι where
   parts j := (P.parts j).map (QuotientGroup.mk' N)
   reps j := QuotientGroup.mk (P.reps j)
+  nonempty _ := OneMemClass.coe_nonempty _
   disjoint := by
     have habs : ∀ (j : ι) (y x : G),
         y ∈ P.reps j • ((P.parts j : Subgroup G) : Set G) →

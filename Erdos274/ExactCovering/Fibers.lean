@@ -144,6 +144,7 @@ noncomputable def fiberCover (N : Subgroup G) (x : G) :
     Group.ExactCovering N (P.FiberIndex N x) where
   parts i := P.fiberPart N i
   reps i := P.fiberRep N x i
+  nonempty _ := OneMemClass.coe_nonempty _
   disjoint := by
     intro i _ j _ hij
     change Disjoint

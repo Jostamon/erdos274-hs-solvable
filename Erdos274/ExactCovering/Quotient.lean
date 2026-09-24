@@ -176,6 +176,7 @@ def map {Q : Type*} [Group Q] (f : G →* Q) (hf : Function.Surjective f)
     (hker : ∀ i, f.ker ≤ P.parts i) : Group.ExactCovering Q ι where
   parts i := (P.parts i).map f
   reps i := f (P.reps i)
+  nonempty _ := OneMemClass.coe_nonempty _
   disjoint := by
     intro i _ j _ hij
     change Disjoint
