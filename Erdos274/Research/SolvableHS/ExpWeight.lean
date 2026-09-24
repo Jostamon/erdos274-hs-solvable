@@ -27,7 +27,9 @@ exact-covering language.
 * `W_mono`, `W_union_add_inter`, `W_union_of_disjoint`, `W_singleton`,
   `W_finset`: `W` is a measure on the discrete space, in the form needed.
 * `W_shift`: `W(S + e) = w(e)·W(S)`, exactly.
-* `W_univ_fin`: `W(ℕⁿ) = ∏ᵢ (1 − rᵢ)⁻¹`, the Mertens product `Π` when
+* `W_pi`: the mass of a product set is the product of the coordinate
+  masses (`tsum_pi`).
+* `W_univ`: `W(ℕ^ι) = ∏ᵢ (1 − rᵢ)⁻¹`, the Mertens product `Π` when
   `rᵢ = 1/qᵢ`.  This is where `Π` comes from; it is not an input.
 
 This file imports only `Mathlib.*`.
@@ -127,23 +129,47 @@ theorem W_Ici (y : ι → ℕ) : W r (Ici y) = w r y * W r univ := by
   ext z
   simp [mem_shift]
 
-/-! ### The total mass is the Mertens product -/
+/-! ### Product sets, and the total mass -/
 
-theorem tsum_prod_pow_fin : ∀ (n : ℕ) (r : Fin n → ℝ≥0∞),
-    ∑' z : Fin n → ℕ, ∏ i, r i ^ z i = ∏ i, (1 - r i)⁻¹
-  | 0, r => by
+theorem tsum_pi_fin : ∀ (n : ℕ) (f : Fin n → ℕ → ℝ≥0∞),
+    ∑' z : Fin n → ℕ, ∏ i, f i (z i) = ∏ i, ∑' m, f i m
+  | 0, f => by
     rw [tsum_eq_single (Fin.elim0 : Fin 0 → ℕ) fun b hb ↦ (hb (Subsingleton.elim _ _)).elim]
     simp
-  | n + 1, r => by
-    rw [← (Fin.consEquiv fun _ ↦ ℕ).tsum_eq (fun z ↦ ∏ i, r i ^ z i), ENNReal.tsum_prod']
+  | n + 1, f => by
+    rw [← (Fin.consEquiv fun _ ↦ ℕ).tsum_eq (fun z ↦ ∏ i, f i (z i)), ENNReal.tsum_prod']
     simp only [Fin.consEquiv, Equiv.coe_fn_mk, Fin.prod_univ_succ, Fin.cons_zero, Fin.cons_succ]
-    simp only [ENNReal.tsum_mul_left, ENNReal.tsum_mul_right, ENNReal.tsum_geometric,
-      tsum_prod_pow_fin n (fun i ↦ r i.succ)]
+    simp only [ENNReal.tsum_mul_left, ENNReal.tsum_mul_right, tsum_pi_fin n (fun i ↦ f i.succ)]
 
-/-- **`W(ℕⁿ) = ∏ᵢ (1 − rᵢ)⁻¹`.**  With `rᵢ = 1/qᵢ` this is `∏ qᵢ/(qᵢ − 1)`. -/
-theorem W_univ_fin {n : ℕ} (r : Fin n → ℝ≥0∞) : W r univ = ∏ i, (1 - r i)⁻¹ := by
-  simp only [W, indicator_univ]
-  exact tsum_prod_pow_fin n r
+/-- A sum of products over `ι → ℕ` is the product of the coordinate sums. -/
+theorem tsum_pi (f : ι → ℕ → ℝ≥0∞) : ∑' z : ι → ℕ, ∏ i, f i (z i) = ∏ i, ∑' m, f i m := by
+  let e := Fintype.equivFin ι
+  rw [← (e.arrowCongr (Equiv.refl ℕ)).symm.tsum_eq]
+  have h1 : ∀ y : Fin (Fintype.card ι) → ℕ,
+      ∏ i, f i ((e.arrowCongr (Equiv.refl ℕ)).symm y i) = ∏ k, f (e.symm k) (y k) := fun y ↦
+    Fintype.prod_equiv e _ _ fun i ↦ by simp [Equiv.arrowCongr]
+  simp only [h1]
+  rw [tsum_pi_fin]
+  exact (Fintype.prod_equiv e _ _ fun i ↦ by simp).symm
+
+/-- **The mass of a product set** is the product of the coordinate masses. -/
+theorem W_pi (C : ι → Set ℕ) :
+    W r (univ.pi C) = ∏ i, ∑' m, (C i).indicator (r i ^ ·) m := by
+  rw [W, ← tsum_pi]
+  refine tsum_congr fun z ↦ ?_
+  by_cases hz : z ∈ univ.pi C
+  · rw [indicator_of_mem hz, w]
+    exact Finset.prod_congr rfl fun i _ ↦ (indicator_of_mem (hz i (mem_univ i)) _).symm
+  · rw [indicator_of_notMem hz]
+    obtain ⟨i, hi⟩ : ∃ i, z i ∉ C i := by simpa [Set.mem_univ_pi] using hz
+    exact (Finset.prod_eq_zero (Finset.mem_univ i) (indicator_of_notMem hi _)).symm
+
+/-- **`W(ℕ^ι) = ∏ᵢ (1 − rᵢ)⁻¹`.**  With `rᵢ = 1/qᵢ` this is `∏ qᵢ/(qᵢ − 1)`. -/
+theorem W_univ (r : ι → ℝ≥0∞) : W r univ = ∏ i, (1 - r i)⁻¹ := by
+  rw [← Set.pi_univ, W_pi]
+  simp [ENNReal.tsum_geometric]
+
+theorem W_univ_fin {n : ℕ} (r : Fin n → ℝ≥0∞) : W r univ = ∏ i, (1 - r i)⁻¹ := W_univ r
 
 end ExpWeight
 
