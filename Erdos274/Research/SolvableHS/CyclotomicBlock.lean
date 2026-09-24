@@ -54,7 +54,7 @@ universe u
 /-- **A `p`-group acting nontrivially on a group of order `q^c` forces
 `ord_p q ≤ c`.** -/
 theorem orderOf_le_of_fixedPoints {p q c : ℕ} [hp : Fact p.Prime] (hq : q.Prime)
-    (hpq : p ≠ q) {P A : Type*} [Group P] [Group A] [Finite P] [Finite A]
+    (hpq : p ≠ q) {P A : Type*} [Group P] [Group A] [Finite A]
     [MulDistribMulAction P A]
     (hP : IsPGroup p P) (hA : Nat.card A = q ^ c) (hnt : ∃ (x : P) (a : A), x • a ≠ a) :
     orderOf (q : ZMod p) ≤ c := by

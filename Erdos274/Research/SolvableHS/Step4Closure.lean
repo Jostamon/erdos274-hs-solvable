@@ -151,12 +151,14 @@ section Join
 variable {G : Type u} [Group G] [Fintype G] {κ : Type v} [Fintype κ]
   (C : Group.ExactCovering G κ) (F : Subgroup G)
 
+omit [Fintype G] in
 /-- **The step-4 closure at a general prime.**  If every non-universal local
 index is divisible by `p` or by `q^{ord_p q}` for a prime `q < p`, and
 `Π_p·(S_p + 1/(p−1)) < 1`, there is no non-universal part: the hypotheses
 are the setting (`p` the largest prime of `|G|`, distinct non-universal
 indices, one of them) and (CB). -/
-theorem false_of_covering [Group.IsSolvable G] [F.Normal] {p : ℕ} [hp : Fact p.Prime]
+theorem false_of_covering [Finite G] [Group.IsSolvable G] [F.Normal] {p : ℕ}
+    [hp : Fact p.Prime]
     (hpG : p ∣ Nat.card G) (hG : ∀ q, q.Prime → q ∣ Nat.card G → q ≤ p)
     (hdist : Set.InjOn (fun j ↦ (C.parts j).index) (nonUniv C F))
     (hne : (nonUniv C F).Nonempty)
@@ -164,6 +166,7 @@ theorem false_of_covering [Group.IsSolvable G] [F.Normal] {p : ℕ} [hp : Fact p
       ∃ q, q.Prime ∧ q < p ∧ q ^ ordMod p q ∣ loc C F j)
     (hcrit : piBelow p * (sOrd p + 1 / ((p : ℚ) - 1)) < 1) : False := by
   classical
+  have := Fintype.ofFinite G
   set n := Nat.card G with hndef
   have hn0 : n ≠ 0 := Nat.card_pos.ne'
   -- the prime coordinates
