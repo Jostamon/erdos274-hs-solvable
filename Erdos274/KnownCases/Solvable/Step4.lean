@@ -3,11 +3,11 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.Research.SolvableHS.SevenCB
-import Erdos274.Research.SolvableHS.Step4Structure
-import Erdos274.Research.SolvableHS.Step4Closure
-import Erdos274.Research.SolvableHS.Step4Criterion
-import Erdos274.Research.SolvableHS.Minimality
+import Erdos274.KnownCases.Solvable.SevenCB
+import Erdos274.KnownCases.Solvable.Step4Structure
+import Erdos274.KnownCases.Solvable.Step4Closure
+import Erdos274.KnownCases.Solvable.Step4Criterion
+import Erdos274.KnownCases.Solvable.Minimality
 import Erdos274.ExactCovering.FiniteIndex
 
 /-!

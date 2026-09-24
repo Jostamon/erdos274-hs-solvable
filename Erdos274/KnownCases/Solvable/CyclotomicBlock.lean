@@ -3,7 +3,7 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.Research.MinimalNormal
+import Erdos274.FiniteGroup.MinimalNormal
 import Mathlib.GroupTheory.PGroup
 import Mathlib.GroupTheory.Commutator.Basic
 import Mathlib.GroupTheory.GroupAction.ConjAct
@@ -148,49 +148,14 @@ theorem cyclotomic_block [Group.IsSolvable H] {p : ℕ} [Fact p.Prime] {K Q W : 
     (fun h ↦ hMne (le_antisymm hMK (h ▸ hNM))), le_rfl⟩
   obtain ⟨V, -, hVmin⟩ := (Set.toFinite S).isPWO.exists_le_minimal hKS
   obtain ⟨hVn, hNV, hVK⟩ := hVmin.prop
-  -- `V/N` is minimal normal in `H/N`, hence elementary abelian
-  set A₀ := V.map (QuotientGroup.mk' N) with hA₀
-  have hA₀n : A₀.Normal := Subgroup.Normal.map hVn _ (QuotientGroup.mk'_surjective N)
-  have hA₀ne : A₀ ≠ ⊥ := by
-    rw [hA₀, Ne, Subgroup.map_eq_bot_iff, QuotientGroup.ker_mk']
-    exact fun h ↦ hNV.not_ge h
-  have hA₀min : ∀ N' : Subgroup (H ⧸ N), N'.Normal → N' ≠ ⊥ → N' ≤ A₀ → N' = A₀ := by
-    intro N' hN'n hN'ne hN'le
-    set V' := N'.comap (QuotientGroup.mk' N) with hV'
-    have hV'n : V'.Normal := Subgroup.Normal.comap hN'n _
-    have hNV' : N ≤ V' := by
-      intro n hn
-      rw [hV', Subgroup.mem_comap, QuotientGroup.mk'_apply,
-        (QuotientGroup.eq_one_iff n).mpr hn]
-      exact N'.one_mem
-    have hV'V : V' ≤ V := by
-      calc V' ≤ A₀.comap (QuotientGroup.mk' N) := Subgroup.comap_mono hN'le
-        _ = V ⊔ N := by rw [hA₀, Subgroup.comap_map_eq, QuotientGroup.ker_mk']
-        _ = V := sup_eq_left.mpr hNV.le
-    have hNV'ne : N ≠ V' := by
-      intro h
-      apply hN'ne
-      rw [← Subgroup.map_comap_eq_self_of_surjective (QuotientGroup.mk'_surjective N) N',
-        ← hV', ← h, Subgroup.map_eq_bot_iff, QuotientGroup.ker_mk']
-    have hV'S : V' ∈ S := ⟨hV'n, lt_of_le_of_ne hNV' hNV'ne, hV'V.trans hVK⟩
-    have hVV' : V = V' := le_antisymm (hVmin.2 hV'S hV'V) hV'V
-    rw [hA₀, hVV', hV', Subgroup.map_comap_eq_self_of_surjective (QuotientGroup.mk'_surjective N)]
-  obtain ⟨q, a, hq, -, -, hcomm, hexp⟩ :=
-    minimal_normal_is_elementary_abelian hA₀n hA₀ne hA₀min
+  -- `V/N` is a minimal normal section, hence elementary abelian
+  obtain ⟨q, hq, hexpV, hcommV⟩ := exists_prime_of_minimal_normal_section hVn hNV
+    fun V' hV'n hNV' hV'V ↦ le_antisymm hV'V (hVmin.2 ⟨hV'n, hNV', hV'V.trans hVK⟩ hV'V)
   have : Fact q.Prime := ⟨hq⟩
-  have hmkV : ∀ v ∈ V, ((v : H ⧸ N)) ∈ A₀ := fun v hv ↦ Subgroup.mem_map_of_mem _ hv
   -- consequences in `H`
-  have hexpV : ∀ v ∈ V, v ^ q ∈ N := by
-    intro v hv
-    have h := congrArg Subtype.val (hexp ⟨_, hmkV v hv⟩)
-    simp only [SubgroupClass.coe_pow, OneMemClass.coe_one] at h
-    rw [← QuotientGroup.mk_pow] at h
-    exact (QuotientGroup.eq_one_iff _).mp h
   have hconjM : ∀ v ∈ V, ∀ d ∈ V ⊓ M, v * d * v⁻¹ ∈ M := by
     intro v hv d hd
-    have hvd : ((v : H ⧸ N)) * d = d * v := by
-      have h := hcomm.is_comm.comm ⟨_, hmkV v hv⟩ ⟨_, hmkV d hd.1⟩
-      exact congrArg Subtype.val h
+    have hvd : ((v : H ⧸ N)) * d = d * v := hcommV v hv d hd.1
     have h : ((v * d * v⁻¹ : H) : H ⧸ N) = d := by
       simp only [QuotientGroup.mk_mul, QuotientGroup.mk_inv, hvd, mul_inv_cancel_right]
     have hn : (v * d * v⁻¹)⁻¹ * d ∈ N := QuotientGroup.eq.mp h

@@ -3,8 +3,8 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.Research.SolvableHS.Chamber
-import Erdos274.Research.SolvableHS.CyclotomicBlock
+import Erdos274.KnownCases.Solvable.Chamber
+import Erdos274.KnownCases.Solvable.CyclotomicBlock
 
 /-!
 # The exact-`(p+1)` chamber

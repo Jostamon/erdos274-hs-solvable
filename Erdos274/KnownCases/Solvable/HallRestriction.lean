@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
 import Erdos274.ExactCovering.Counting.Volume
-import Erdos274.Research.SolvableHS.OrbitUnionBound
+import Erdos274.KnownCases.Solvable.OrbitUnionBound
 
 /-!
 # Solvable HS: Lemma H (Hall restriction)

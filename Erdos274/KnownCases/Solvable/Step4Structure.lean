@@ -3,7 +3,7 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.Research.SolvableHS.CyclotomicBlock
+import Erdos274.KnownCases.Solvable.CyclotomicBlock
 import Mathlib.GroupTheory.Sylow
 
 /-!
@@ -240,39 +240,10 @@ theorem exists_structure [Group.IsSolvable G] {p : ℕ} [hp : Fact p.Prime]
   have htopS : ⊤ ∈ S := ⟨inferInstance, lt_top_iff_ne_top.mpr hNtop⟩
   obtain ⟨V, -, hVmin⟩ := (Set.toFinite S).isPWO.exists_le_minimal htopS
   obtain ⟨hVn, hNV⟩ := hVmin.prop
-  -- `V/N` is minimal normal in `G/N`
-  set A₀ := V.map (QuotientGroup.mk' N) with hA₀
-  have hA₀n : A₀.Normal := Subgroup.Normal.map hVn _ (QuotientGroup.mk'_surjective N)
-  have hA₀ne : A₀ ≠ ⊥ := by
-    rw [hA₀, Ne, Subgroup.map_eq_bot_iff, QuotientGroup.ker_mk']
-    exact fun h ↦ hNV.not_ge h
-  have hA₀min : ∀ N' : Subgroup (G ⧸ N), N'.Normal → N' ≠ ⊥ → N' ≤ A₀ → N' = A₀ := by
-    intro N' hN'n hN'ne hN'le
-    set V' := N'.comap (QuotientGroup.mk' N) with hV'
-    have hV'n : V'.Normal := Subgroup.Normal.comap hN'n _
-    have hNV' : N ≤ V' := by
-      intro n hn
-      rw [hV', Subgroup.mem_comap, QuotientGroup.mk'_apply, (QuotientGroup.eq_one_iff n).mpr hn]
-      exact N'.one_mem
-    have hV'V : V' ≤ V := by
-      calc V' ≤ A₀.comap (QuotientGroup.mk' N) := Subgroup.comap_mono hN'le
-        _ = V ⊔ N := by rw [hA₀, Subgroup.comap_map_eq, QuotientGroup.ker_mk']
-        _ = V := sup_eq_left.mpr hNV.le
-    have hNV'ne : N ≠ V' := by
-      intro h
-      apply hN'ne
-      rw [← Subgroup.map_comap_eq_self_of_surjective (QuotientGroup.mk'_surjective N) N',
-        ← hV', ← h, Subgroup.map_eq_bot_iff, QuotientGroup.ker_mk']
-    have hV'S : V' ∈ S := ⟨hV'n, lt_of_le_of_ne hNV' hNV'ne⟩
-    have hVV' : V = V' := le_antisymm (hVmin.2 hV'S hV'V) hV'V
-    rw [hA₀, hVV', hV', Subgroup.map_comap_eq_self_of_surjective (QuotientGroup.mk'_surjective N)]
-  obtain ⟨q, a, hq, -, -, -, hexp⟩ := minimal_normal_is_elementary_abelian hA₀n hA₀ne hA₀min
-  have hexpV : ∀ v ∈ V, v ^ q ∈ N := by
-    intro v hv
-    have h := congrArg Subtype.val (hexp ⟨_, Subgroup.mem_map_of_mem _ hv⟩)
-    simp only [SubgroupClass.coe_pow, OneMemClass.coe_one, QuotientGroup.mk'_apply] at h
-    rw [← QuotientGroup.mk_pow] at h
-    exact (QuotientGroup.eq_one_iff _).mp h
+  -- `V/N` is a minimal normal section, hence of prime exponent `q`
+  have := hNn
+  obtain ⟨q, hq, hexpV, -⟩ := exists_prime_of_minimal_normal_section hVn hNV
+    fun V' hV'n hNV' hV'V ↦ le_antisymm hV'V (hVmin.2 ⟨hV'n, hNV'⟩ hV'V)
   -- `[V : N]` is a power of `q`
   have : (N.subgroupOf V).Normal := hNn.subgroupOf V
   have : Fact q.Prime := ⟨hq⟩

@@ -3,9 +3,9 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.Research.SolvableHS.SevenInstance
-import Erdos274.Research.SolvableHS.DivisorWeight
-import Erdos274.Research.SolvableHS.QuotientShadow
+import Erdos274.KnownCases.Solvable.SevenInstance
+import Erdos274.KnownCases.Solvable.DivisorWeight
+import Erdos274.KnownCases.Solvable.QuotientShadow
 import Mathlib.Tactic.NormNum.Prime
 
 /-!
@@ -216,17 +216,100 @@ theorem index_eq_head_mul_loc (j : κ) : (C.parts j).index = head C F j * loc C 
 
 end Covering
 
+theorem coe_div_nat (N n : ℕ) (hn : n ≠ 0) :
+    ((((N : ℝ≥0) / n : ℝ≥0)) : ℝ≥0∞) = (N : ℝ≥0∞) / n := by
+  rw [ENNReal.coe_div (by exact_mod_cast hn)]
+  simp
+
+/-! ### Exponent data of a covering
+
+The bridge from a covering to exponent vectors, shared by the general step-4
+closure (`Step4Closure.false_of_covering`) and the `p = 7` closure below.
+Fix primes `q : ι → ℕ` covering the prime divisors of `|G|`.  Per part `j`:
+* `vec_head_add_vec_loc`: `v(dⱼ) = v(hⱼ) + v(ℓⱼ)`, from `dⱼ = hⱼℓⱼ`;
+* `w_vec_head_add_vec_loc`: its weight is `1/dⱼ`;
+* `injOn_vec_head_add_vec_loc`: distinct indices give distinct vectors;
+* `W_up_heads_family_le`, `W_up_heads_nonUniv_le`: Lemma O on the heads,
+  `W(up{v(hⱼ)}) ≤ Π·|⋃ shadows|/[G:F] ≤ Π·ν`. -/
+
+section ExponentData
+
+variable {G : Type u} [Group G] [Fintype G] {κ : Type v} [Fintype κ]
+  (C : Group.ExactCovering G κ) (F : Subgroup G) [F.Normal]
+  {ι : Type*} {q : ι → ℕ}
+
+/-- **`v(dⱼ) = v(hⱼ) + v(ℓⱼ)`**: the index vector splits into head and local
+parts. -/
+theorem vec_head_add_vec_loc (hsm : Smooth q (Nat.card G)) (j : κ) :
+    vec q (head C F j) + vec q (loc C F j) = vec q ((C.parts j).index) := by
+  have hsmh : Smooth q (head C F j) :=
+    (hsm.of_dvd F.index_dvd_card).of_dvd (head_dvd_index C F j)
+  have hsml : Smooth q (loc C F j) := hsm.of_dvd (loc_dvd_card C F j)
+  rw [index_eq_head_mul_loc C F j, vec_mul hsmh.1 hsml.1]
+
+variable (hq : ∀ i, (q i).Prime) (hqi : Function.Injective q)
+include hq hqi
+
+/-- The weight of `v(hⱼ) + v(ℓⱼ)` is `1/[G : Hⱼ]`. -/
+theorem w_vec_head_add_vec_loc [Fintype ι] (hsm : Smooth q (Nat.card G)) (j : κ) :
+    w (ratio q) (vec q (head C F j) + vec q (loc C F j)) =
+      ((((C.parts j).index : ℝ≥0)⁻¹ : ℝ≥0) : ℝ≥0∞) := by
+  rw [vec_head_add_vec_loc C F hsm j, w_vec hq hqi (hsm.of_dvd (C.parts j).index_dvd_card)]
+
+/-- Parts with distinct indices have distinct vectors `v(hⱼ) + v(ℓⱼ)`. -/
+theorem injOn_vec_head_add_vec_loc [Finite ι] (hsm : Smooth q (Nat.card G)) {J : Set κ}
+    (hdist : Set.InjOn (fun j ↦ (C.parts j).index) J) :
+    Set.InjOn (fun j ↦ vec q (head C F j) + vec q (loc C F j)) J := by
+  intro a ha b hb h
+  simp only [vec_head_add_vec_loc C F hsm] at h
+  exact hdist ha hb (vec_injOn hq hqi (hsm.of_dvd (C.parts a).index_dvd_card)
+    (hsm.of_dvd (C.parts b).index_dvd_card) h)
+
+/-- **Lemma O on the heads of a family `T`**:
+`W(up{v(hⱼ) : j ∈ T}) ≤ Π·|⋃_{j∈T} shadowⱼ|/[G:F]`. -/
+theorem W_up_heads_family_le [Fintype ι] [Group.IsSolvable G] (hsm : Smooth q (Nat.card G))
+    (T : Finset κ) :
+    W (ratio q) (up (((T.image (head C F)).image (vec q) : Finset (ι → ℕ)) :
+      Set (ι → ℕ))) ≤
+        (PiN q : ℝ≥0∞) * (((((⋃ j ∈ T, shadow C F j).ncard : ℝ≥0) / F.index : ℝ≥0)) :
+          ℝ≥0∞) := by
+  classical
+  have hH : ∀ h ∈ T.image (head C F), h ∣ F.index := by
+    intro h hh
+    obtain ⟨j, -, rfl⟩ := Finset.mem_image.mp hh
+    exact head_dvd_index C F j
+  have himg : (T.image (head C F)).image (F.index / ·) = T.image (sz C F) := by
+    rw [Finset.image_image]
+    exact Finset.image_congr fun j _ ↦ index_div_head C F j
+  have hμ := divisorMass_le_ncard_shadows C F T
+  rw [← himg] at hμ
+  refine (W_up_heads_le hq hqi (hsm.of_dvd F.index_dvd_card) _ hH hμ).trans (le_of_eq ?_)
+  rw [coe_div_nat _ _ F.index_ne_zero_of_finite, mul_div_assoc]
+
+/-- **Lemma O over the non-universal parts**: `W(U) ≤ Π·ν`, where `U` is the
+up-set of their heads and `ν = ∑ 1/[G : Hⱼ]` over them.  A part meeting a
+non-universal shadow is non-universal, so the fibre count stays inside. -/
+theorem W_up_heads_nonUniv_le [Fintype ι] [Group.IsSolvable G]
+    (hsm : Smooth q (Nat.card G)) :
+    W (ratio q) (up ((((nonUniv C F).image (head C F)).image (vec q) : Finset (ι → ℕ)) :
+      Set (ι → ℕ))) ≤
+        (PiN q : ℝ≥0∞) * ((∑ j ∈ nonUniv C F, ((C.parts j).index : ℝ≥0)⁻¹ : ℝ≥0) : ℝ≥0∞) := by
+  classical
+  refine (W_up_heads_family_le C F hq hqi hsm _).trans ?_
+  gcongr
+  refine ncard_div_le C F _ _ (card_mul_ncard_le_of_meet C F _ _ fun k δ hδ hδk ↦ ?_)
+  obtain ⟨j, hj, hδj⟩ := Set.mem_iUnion₂.mp hδ
+  exact Finset.mem_filter.mpr
+    ⟨Finset.mem_univ _, not_le_of_meet C F (Finset.mem_filter.mp hj).2 hδj hδk⟩
+
+end ExponentData
+
 /-! ### The join at `p = 7` -/
 
 section Join
 
 variable {G : Type u} [Group G] [Fintype G] {κ : Type v} [Fintype κ]
   (C : Group.ExactCovering G κ) (F : Subgroup G)
-
-theorem coe_div_nat (N n : ℕ) (hn : n ≠ 0) :
-    ((((N : ℝ≥0) / n : ℝ≥0)) : ℝ≥0∞) = (N : ℝ≥0∞) / n := by
-  rw [ENNReal.coe_div (by exact_mod_cast hn)]
-  simp
 
 /-- **No exact covering realises the `p = 7` residual of step 4.**
 
@@ -268,11 +351,7 @@ theorem false_of_covering [Group.IsSolvable G] [F.Normal]
     interval_cases p <;> first
       | exact ⟨0, rfl⟩ | exact ⟨1, rfl⟩ | exact ⟨2, rfl⟩ | exact ⟨3, rfl⟩
       | norm_num at hpp
-  have hsmn : Smooth q F.index := hsm.of_dvd F.index_dvd_card
-  have hsmh : ∀ j, Smooth q (head C F j) := fun j ↦ hsmn.of_dvd (head_dvd_index C F j)
   have hsml : ∀ j, Smooth q (loc C F j) := fun j ↦ hsm.of_dvd (loc_dvd_card C F j)
-  have hsmd : ∀ j, Smooth q ((C.parts j).index) := fun j ↦
-    hsm.of_dvd (C.parts j).index_dvd_card
   -- the prime-power indices as vectors
   have e7 : vec q 7 = Pi.single 3 1 := vec_pow hq hqi 3 1
   have e8 : vec q (2 ^ t) = Pi.single 0 t := vec_pow hq hqi 0 t
@@ -288,10 +367,8 @@ theorem false_of_covering [Group.IsSolvable G] [F.Normal]
   set J := nonUniv C F with hJdef
   set hd : κ → Fin 4 → ℕ := fun j ↦ vec q (head C F j) with hhd_def
   set l : κ → Fin 4 → ℕ := fun j ↦ vec q (loc C F j) with hl_def
-  have hdl : ∀ j, hd j + l j = vec q ((C.parts j).index) := fun j ↦ by
-    rw [index_eq_head_mul_loc C F j, vec_mul (hsmh j).1 (hsml j).1]
   have hwd : ∀ j, w (ratio q) (hd j + l j) = ((((C.parts j).index : ℝ≥0)⁻¹ : ℝ≥0) : ℝ≥0∞) :=
-    fun j ↦ by rw [hdl, w_vec hq hqi (hsmd j)]
+    w_vec_head_add_vec_loc C F hq hqi hsm
   set J7 := J.filter fun j ↦ loc C F j = 7 with hJ7
   set J8 := J.filter fun j ↦ loc C F j = 2 ^ t with hJ8
   set Ω7 : Set (G ⧸ F) := ⋃ j ∈ J7, shadow C F j with hΩ7
@@ -305,7 +382,6 @@ theorem false_of_covering [Group.IsSolvable G] [F.Normal]
   set a₇ : ℝ≥0∞ := ((((Ω7.ncard : ℝ≥0) / F.index : ℝ≥0) : ℝ≥0∞)) with ha₇
   set a₈ : ℝ≥0∞ := ((((Ω8.ncard : ℝ≥0) / F.index : ℝ≥0) : ℝ≥0∞)) with ha₈
   have hWu : W (ratio q) univ = (PiN q : ℝ≥0∞) := W_univ_ratio hq
-  have hn0 : F.index ≠ 0 := F.index_ne_zero_of_finite
   have hmemJ : ∀ {j}, j ∈ J → ¬ F ≤ C.parts j := fun hj ↦ (Finset.mem_filter.mp hj).2
   -- a part meeting the shadow of a part in `J` is in `J`
   have hmeet : ∀ {j k δ}, j ∈ J → δ ∈ shadow C F j → δ ∈ shadow C F k → k ∈ J :=
@@ -317,22 +393,7 @@ theorem false_of_covering [Group.IsSolvable G] [F.Normal]
     rw [ENNReal.ofNNReal_finsetSum]
     exact Finset.sum_congr rfl fun j _ ↦ hwd j
   -- Lemma O through the untruncated weight, for a family `T ⊆ J`
-  have hLOT : ∀ T : Finset κ, W (ratio q) (up (((T.image (head C F)).image (vec q) :
-      Finset (Fin 4 → ℕ)) : Set (Fin 4 → ℕ))) ≤
-        (PiN q : ℝ≥0∞) * (((((⋃ j ∈ T, shadow C F j).ncard : ℝ≥0) / F.index : ℝ≥0)) :
-          ℝ≥0∞) := by
-    intro T
-    have hH : ∀ h ∈ T.image (head C F), h ∣ F.index := by
-      intro h hh
-      obtain ⟨j, -, rfl⟩ := Finset.mem_image.mp hh
-      exact head_dvd_index C F j
-    have himg : (T.image (head C F)).image (F.index / ·) = T.image (sz C F) := by
-      rw [Finset.image_image]
-      exact Finset.image_congr fun j _ ↦ index_div_head C F j
-    have hμ := divisorMass_le_ncard_shadows C F T
-    rw [← himg] at hμ
-    refine (W_up_heads_le hq hqi hsmn _ hH hμ).trans (le_of_eq ?_)
-    rw [coe_div_nat _ _ hn0, mul_div_assoc]
+  have hLOT := W_up_heads_family_le C F hq hqi hsm
   -- `pr A + pr B ≤ ν₇₈`
   have hsepΩ : Disjoint Ω7 Ω8 := by
     rw [hΩ7, hΩ8, Set.disjoint_iUnion₂_left]
@@ -385,10 +446,7 @@ theorem false_of_covering [Group.IsSolvable G] [F.Normal]
     obtain ⟨j, -, hjx, hδj⟩ := hΩ78 hδ
     rw [← e7, ← e8, hdivl s7, hdivl s8]
     exact hch j p hjx δ hδj hδp
-  have hinj : Set.InjOn (fun p ↦ hd p + l p) J := by
-    intro p hp p' hp' h
-    simp only [hdl] at h
-    exact hdist hp hp' (vec_injOn hq hqi (hsmd p) (hsmd p') h)
+  have hinj : Set.InjOn (fun p ↦ hd p + l p) J := injOn_vec_head_add_vec_loc C F hq hqi hsm hdist
   have hA' : ∀ p ∈ J, hd p ∈ H₀ → l p = Pi.single 3 1 → hd p ∈ A := by
     intro p hp hH hl
     rw [← e7] at hl
@@ -404,13 +462,8 @@ theorem false_of_covering [Group.IsSolvable G] [F.Normal]
     have hHS : HS = (J.image (head C F)).image (vec q) := by
       rw [hHS, Finset.image_image]
       rfl
-    rw [hH₀, up_minimals, hHS, hWu]
-    refine (hLOT J).trans ?_
-    gcongr
-    rw [hν, hνsum, ENNReal.coe_le_coe]
-    refine ncard_div_le C F _ _ (card_mul_ncard_le_of_meet C F _ _ fun k δ hδ hδk ↦ ?_)
-    obtain ⟨j, hj, hδj⟩ := Set.mem_iUnion₂.mp hδ
-    exact hmeet hj hδj hδk
+    rw [hH₀, up_minimals, hHS, hWu, hν, hνsum]
+    exact W_up_heads_nonUniv_le C F hq hqi hsm
   have hsubT : ∀ (T : Finset κ) (X : Finset (Fin 4 → ℕ)), (∀ x ∈ X, ∃ j ∈ T, hd j = x) →
       W (ratio q) (up (X : Set (Fin 4 → ℕ))) ≤
         W (ratio q) (up (((T.image (head C F)).image (vec q) : Finset (Fin 4 → ℕ)) :

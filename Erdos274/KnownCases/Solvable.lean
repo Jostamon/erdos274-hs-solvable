@@ -3,8 +3,9 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.Research.SolvableHS.Step4
-import Erdos274.Reduction.Statements
+import Erdos274.KnownCases.Solvable.Step4
+import Erdos274.ExactCovering.Cardinality
+import Erdos274.ExactCovering.Quotient
 
 /-!
 # The Herzog–Schönheim conjecture for solvable groups
@@ -19,7 +20,8 @@ with only `[Group.IsSolvable G]` added.
 ## From arbitrary groups to finite ones
 
 Herzog–Schönheim is a conjecture about arbitrary groups.  It reduces to finite
-groups (`herzogSchonheim_iff_finite` in `Reduction.Statements`):
+groups (`herzogSchonheim_iff_finite` in `Reduction.Statements`; this file uses
+the two ingredients directly, not that equivalence):
 
 * every part of a finite exact coset covering has finite index
   (`Group.ExactCovering.part_finiteIndex`, from B. H. Neumann's lemma as
@@ -30,7 +32,12 @@ groups (`herzogSchonheim_iff_finite` in `Reduction.Statements`):
 
 A quotient of a solvable group is solvable, so the finite theorem
 `Step4.herzog_schonheim_of_solvable` (`DECISION_LOG` D100) applies to `G/N`
-whether or not `G` is finite.
+whether or not `G` is finite.  Its proof is the directory
+`KnownCases/Solvable/`, which imports nothing outside the proof path.
+
+The signature checks against the upstream statements, and
+`herzogSchonheim_iff_upstream`, are in `Reduction.Upstream`, so that the
+reduction library is not a dependency of this theorem.
 
 ## Main results
 
@@ -46,8 +53,6 @@ whether or not `G` is finite.
 open scoped Pointwise Cardinal
 
 namespace Erdos274
-
-universe u v
 
 set_option linter.unusedVariables false in
 /-- **The Herzog–Schönheim conjecture for solvable groups**, index form:
@@ -85,44 +90,5 @@ theorem erdos_274.variants.solvable_fintype {G : Type*} [Fintype G] [Group G]
     ∃ i j, i ≠ j ∧ #(P.parts i) = #(P.parts j) :=
   erdos_274.variants.solvable
     ((ENat.one_lt_card_iff_nontrivial G).mpr (Fintype.one_lt_card_iff_nontrivial.mp hG)) P hι
-
-/-! ### Compile-time guards against the upstream statements -/
-
-/-- Upstream `herzog_schonheim` is the proposition `HerzogSchonheim` of
-`Reduction.Statements` (binders reordered), which is equivalent to its
-restriction to finite groups (`herzogSchonheim_iff_finite`). -/
-theorem herzogSchonheim_iff_upstream :
-    HerzogSchonheim.{u, v} ↔
-      ∀ {G : Type u} [Group G], 1 < ENat.card G →
-        ∀ {ι : Type v} [Fintype ι], 1 < Fintype.card ι →
-          ∀ (P : Group.ExactCovering G ι),
-            ∃ i j, i ≠ j ∧ (P.parts i).index = (P.parts j).index :=
-  ⟨fun h _ _ hG _ _ hι P ↦ h _ hG _ P hι, fun h _ _ hG _ _ P hι ↦ h hG hι P⟩
-
--- Upstream `herzog_schonheim`, with `[Group.IsSolvable G]` added.
-example :
-    ∀ {G : Type*} [Group G] [Group.IsSolvable G],
-      1 < ENat.card G →
-      ∀ {ι : Type*} [Fintype ι],
-        1 < Fintype.card ι →
-        (P : Group.ExactCovering G ι) →
-        ∃ i j, i ≠ j ∧ (P.parts i).index = (P.parts j).index :=
-  @herzog_schonheim.variants.solvable
-
--- Upstream `erdos_274.variants.abelian`, with `CommGroup` replaced by a solvable `Group`.
-example :
-    ∀ {G : Type*} [Fintype G] [Group G] [Group.IsSolvable G],
-      1 < Fintype.card G →
-      ∀ {ι : Type*} [Fintype ι] (P : Group.ExactCovering G ι),
-        1 < Fintype.card ι →
-        ∃ i j, i ≠ j ∧ #(P.parts i) = #(P.parts j) :=
-  @erdos_274.variants.solvable_fintype
-
--- The upstream structure, field for field.
-example {G : Type*} [Group G] {ι : Type*} [Fintype ι] (parts : ι → Subgroup G) (reps : ι → G)
-    (nonempty : ∀ i, (parts i : Set G).Nonempty)
-    (disjoint : (Set.univ (α := ι)).PairwiseDisjoint fun (i : ι) ↦ reps i • (parts i : Set G))
-    (covers : ⋃ i, reps i • (parts i : Set G) = Set.univ) : Group.ExactCovering G ι :=
-  { parts, reps, nonempty, disjoint, covers }
 
 end Erdos274

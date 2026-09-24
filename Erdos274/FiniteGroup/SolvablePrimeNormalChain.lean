@@ -3,7 +3,8 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Subnormal.UnionBound
+import Erdos274.FiniteGroup.MaximalNormal
+import Erdos274.FiniteGroup.PrimeNormalChain
 import Mathlib.GroupTheory.Solvable
 import Mathlib.GroupTheory.SpecificGroups.Cyclic
 

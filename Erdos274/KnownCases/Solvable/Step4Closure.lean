@@ -3,7 +3,7 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.Research.SolvableHS.SevenJoin
+import Erdos274.KnownCases.Solvable.SevenJoin
 import Erdos274.Arithmetic.PrimeOrder
 
 /-!
@@ -175,54 +175,25 @@ theorem false_of_covering [Finite G] [Group.IsSolvable G] [F.Normal] {p : ℕ}
   have hq : ∀ i, (q i).Prime := fun i ↦ Nat.prime_of_mem_primeFactors i.2
   have hqi : Function.Injective q := Subtype.val_injective
   have hsm : Smooth q n := ⟨hn0, fun x hx ↦ ⟨⟨x, hx⟩, rfl⟩⟩
-  have hsmn : Smooth q F.index := hsm.of_dvd F.index_dvd_card
-  have hsmh : ∀ j, Smooth q (head C F j) := fun j ↦ hsmn.of_dvd (head_dvd_index C F j)
   have hsml : ∀ j, Smooth q (loc C F j) := fun j ↦ hsm.of_dvd (loc_dvd_card C F j)
-  have hsmd : ∀ j, Smooth q ((C.parts j).index) := fun j ↦
-    hsm.of_dvd (C.parts j).index_dvd_card
   -- the data
   set J := nonUniv C F with hJdef
   set hd : κ → ι → ℕ := fun j ↦ vec q (head C F j) with hhd_def
   set l : κ → ι → ℕ := fun j ↦ vec q (loc C F j) with hl_def
-  have hdl : ∀ j, hd j + l j = vec q ((C.parts j).index) := fun j ↦ by
-    rw [index_eq_head_mul_loc C F j, vec_mul (hsmh j).1 (hsml j).1]
   have hwd : ∀ j, w (ratio q) (hd j + l j) = ((((C.parts j).index : ℝ≥0)⁻¹ : ℝ≥0) : ℝ≥0∞) :=
-    fun j ↦ by rw [hdl, w_vec hq hqi (hsmd j)]
+    w_vec_head_add_vec_loc C F hq hqi hsm
   set νN : ℝ≥0 := ∑ j ∈ J, ((C.parts j).index : ℝ≥0)⁻¹ with hνN
   have hνsum : ∑ j ∈ J, w (ratio q) (hd j + l j) = (νN : ℝ≥0∞) := by
     rw [hνN, ENNReal.ofNNReal_finsetSum]
     exact Finset.sum_congr rfl fun j _ ↦ hwd j
-  have hmemJ : ∀ {j}, j ∈ J → ¬ F ≤ C.parts j := fun hj ↦ (Finset.mem_filter.mp hj).2
-  have hmeet : ∀ {j k δ}, j ∈ J → δ ∈ shadow C F j → δ ∈ shadow C F k → k ∈ J :=
-    fun hj hδj hδk ↦ Finset.mem_filter.mpr
-      ⟨Finset.mem_univ _, not_le_of_meet C F (hmemJ hj) hδj hδk⟩
   -- Lemma O: `W(U) ≤ Π·ν`
   set HS := J.image hd with hHS
   have hLO : W (ratio q) (up (HS : Set (ι → ℕ))) ≤ (PiN q : ℝ≥0∞) * νN := by
-    have hH : ∀ h ∈ J.image (head C F), h ∣ F.index := by
-      intro h hh
-      obtain ⟨j, -, rfl⟩ := Finset.mem_image.mp hh
-      exact head_dvd_index C F j
-    have himg : (J.image (head C F)).image (F.index / ·) = J.image (sz C F) := by
-      rw [Finset.image_image]
-      exact Finset.image_congr fun j _ ↦ index_div_head C F j
-    have hμ := divisorMass_le_ncard_shadows C F J
-    rw [← himg] at hμ
     have hHS' : HS = (J.image (head C F)).image (vec q) := by
       rw [hHS, Finset.image_image]
       rfl
     rw [hHS']
-    calc W (ratio q) (up (((J.image (head C F)).image (vec q) : Finset (ι → ℕ)) :
-            Set (ι → ℕ)))
-        ≤ (PiN q : ℝ≥0∞) * (((((⋃ j ∈ J, shadow C F j).ncard : ℝ≥0) / F.index : ℝ≥0)) :
-            ℝ≥0∞) := by
-          refine (W_up_heads_le hq hqi hsmn _ hH hμ).trans (le_of_eq ?_)
-          rw [coe_div_nat _ _ F.index_ne_zero_of_finite, mul_div_assoc]
-      _ ≤ (PiN q : ℝ≥0∞) * νN := by
-          gcongr
-          refine ncard_div_le C F _ _ (card_mul_ncard_le_of_meet C F _ _ fun k δ hδ hδk ↦ ?_)
-          obtain ⟨j, hj, hδj⟩ := Set.mem_iUnion₂.mp hδ
-          exact hmeet hj hδj hδk
+    exact W_up_heads_nonUniv_le C F hq hqi hsm
   -- the shifts
   have hpmem : p ∈ n.primeFactors := Nat.mem_primeFactors.mpr ⟨hp.out, hpG, hn0⟩
   have hsp : Smooth q p := hsm.of_dvd hpG
@@ -243,10 +214,7 @@ theorem false_of_covering [Finite G] [Group.IsSolvable G] [F.Normal] {p : ℕ}
         ((dvd_pow_self q' hord.ne').trans hdvd).trans (loc_dvd_card C F j), hn0⟩
       refine Or.inr (mem_iUnion₂.2 ⟨⟨q', hq'n⟩, Finset.mem_filter.mpr ⟨Finset.mem_univ _, hq'p⟩,
         add_mem_shift_up hhd ((vec_le_iff (hse ⟨q', hq'n⟩) (hsml j).1).mpr hdvd)⟩)
-  have hinj : Set.InjOn (fun j ↦ hd j + l j) J := by
-    intro a ha b hb h
-    simp only [hdl] at h
-    exact hdist ha hb (vec_injOn hq hqi (hsmd a) (hsmd b) h)
+  have hinj : Set.InjOn (fun j ↦ hd j + l j) J := injOn_vec_head_add_vec_loc C F hq hqi hsm hdist
   have hkey := union_shift_bound (ratio q) (HS : Set (ι → ℕ)) e₀ s e J
     (fun j ↦ hd j + l j) hinj hg
   -- everything is finite

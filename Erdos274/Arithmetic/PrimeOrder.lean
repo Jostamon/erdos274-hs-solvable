@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon, Claude Opus 5, OpenAI GPT-5.6 Sol Codex
 -/
 import Erdos274.Arithmetic.Efficiency
-import Erdos274.Arithmetic.GeneralLinearGroup
 import Mathlib.NumberTheory.PrimeCounting
 import Mathlib.FieldTheory.Finite.Basic
 
@@ -30,6 +29,8 @@ bound, which is what `CoupledCriterion.coupledCriterion_of_Pi_le` consumes.
 `S_p` is exact at `p = 5, 7` and bounded above elsewhere.
 
 `Nat.primesBelow` is Mathlib's; `mertensProd` is `Arithmetic/Efficiency.lean`'s.
+The dimension bounds `ord_p q ≤ dim V` are in `Arithmetic/PrimeOrderGL.lean`,
+so that this file does not depend on the general linear group.
 
 No research axiom occurs in this file.
 -/
@@ -109,51 +110,6 @@ theorem ordMod_pos_of_mem {p q : ℕ} (hp : p.Prime) (hq : q ∈ p.primesBelow) 
 theorem ordMod_eq_of {p q k : ℕ} (hk : 0 < k) (h1 : (q : ZMod p) ^ k = 1)
     (h2 : ∀ m, m < k → 0 < m → (q : ZMod p) ^ m ≠ 1) : ordMod p q = k :=
   (orderOf_eq_iff hk).mpr ⟨h1, h2⟩
-
-/-- If distinct primes `p` and `q` satisfy `p ∣ |GL(a, q)|`, then
-`ord_p(q) ≤ a`.  This is the divisibility form; the form the active-core
-argument actually produces is `ordMod_le_finrank_of_orderOf_eq` below, which
-takes the order-`p` automorphism itself. -/
-theorem ordMod_le_of_dvd_card_GL {p q a : ℕ} (hp : p.Prime) (hq : q.Prime)
-    (hpq : p ≠ q)
-    (hdvd : p ∣ Nat.card (Matrix.GeneralLinearGroup (Fin a) (ZMod q))) :
-    ordMod p q ≤ a := by
-  let _ : Fact q.Prime := ⟨hq⟩
-  have hpnot : ¬p ∣ q :=
-    hp.coprime_iff_not_dvd.mp ((Nat.coprime_primes hp hq).mpr hpq)
-  simpa only [ordMod, ZMod.card] using
-    (Matrix.orderOf_card_le_of_dvd_card_GL_field (𝔽 := ZMod q) (n := a)
-      hp (by simpa only [ZMod.card] using hpnot) hdvd)
-
-/-- **The dimension bound of (CB), in project notation.**  Let `p ≠ q` be
-primes and let `V` be a finite-dimensional `𝔽_q`-space carrying an
-automorphism of order `p`.  Then `ord_p q ≤ dim V`.
-
-The active-core argument supplies exactly this: `V` is the regular
-elementary abelian minimal normal subgroup of the primitive affine quotient,
-and the order-`p` element comes from the faithfulness of the `P`-action on
-it.  `V` is abstract here — no basis is chosen — because the group theory
-does not hand one over. -/
-theorem ordMod_le_finrank_of_orderOf_eq {p q : ℕ} (hp : p.Prime)
-    [Fact q.Prime] (hpq : p ≠ q) {V : Type*} [AddCommGroup V]
-    [Module (ZMod q) V] [FiniteDimensional (ZMod q) V] {x : V ≃ₗ[ZMod q] V}
-    (hx : orderOf x = p) : ordMod p q ≤ Module.finrank (ZMod q) V := by
-  have hq : q.Prime := Fact.out
-  have hpnot : ¬p ∣ q :=
-    hp.coprime_iff_not_dvd.mp ((Nat.coprime_primes hp hq).mpr hpq)
-  simpa only [ordMod, ZMod.card] using
-    (Matrix.orderOf_card_le_finrank_of_orderOf_eq (𝔽 := ZMod q) hp
-      (by simpa only [ZMod.card] using hpnot) hx)
-
-/-- The same bound from the two facts the group theory states directly: the
-automorphism is nontrivial, and `p` kills it. -/
-theorem ordMod_le_finrank_of_pow_eq_one {p q : ℕ} (hp : p.Prime)
-    [Fact q.Prime] (hpq : p ≠ q) {V : Type*} [AddCommGroup V]
-    [Module (ZMod q) V] [FiniteDimensional (ZMod q) V] {x : V ≃ₗ[ZMod q] V}
-    (hx1 : x ≠ 1) (hxp : x ^ p = 1) :
-    ordMod p q ≤ Module.finrank (ZMod q) V := by
-  have : Fact p.Prime := ⟨hp⟩
-  exact ordMod_le_finrank_of_orderOf_eq hp hpq (orderOf_eq_prime hxp hx1)
 
 /-- A lower bound on every order gives an upper bound on `S_p`.  Useful when
 the exact orders are not worth carrying: only `k q ≤ ord_p q` is needed. -/
