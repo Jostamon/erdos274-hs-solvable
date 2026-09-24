@@ -7,11 +7,13 @@ import Erdos274.Arithmetic.PrimeOrder
 import Mathlib.Tactic.NormNum.Prime
 
 /-!
-# The step-4 criterion `Π_p·(S_p + 1/(p−1)) < 1` at every prime `p ≥ 5`, `p ≠ 7`
+# The step-4 criterion `Π_p·(S_p + 1/(p−1)) < 1`: every prime `p ≥ 5` but `7`
 
 `Step4Closure.false_of_covering` refutes a covering at `p` once
-`Π_p·(S_p + 1/(p−1)) < 1` (`step4Crit`).  This file proves it for **every**
-prime `p ≥ 5` other than `7`, with no Mertens estimate.
+`Π_p·(S_p + 1/(p−1)) < 1` (`step4Crit`).  This file proves that, for a prime
+`p ≥ 5`, the criterion holds **exactly** when `p ≠ 7`
+(`step4Crit_iff_ne_seven`), with no Mertens estimate.  The failure at `7`
+(`not_step4Crit_seven`) is what makes the separate `p = 7` closure necessary.
 
 * `p ≤ 31`: the order table of `PrimeOrder`.
 * `37 ≤ p ≤ 251`: one exact certificate per range, with the order-free bound
@@ -48,8 +50,6 @@ namespace Erdos274
 namespace Step4Criterion
 
 open Finset PrimeOrder
-
-set_option maxRecDepth 20000
 
 /-- **The step-4 criterion** at `p`. -/
 def step4Crit (p : ℕ) : Prop := piBelow p * (sOrd p + 1 / ((p : ℚ) - 1)) < 1
@@ -141,7 +141,7 @@ private theorem primesBelow_251 :
       {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
         73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151,
         157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233,
-        239, 241} := by decide
+        239, 241} := by decide +kernel
 
 private theorem crit_37 {p : ℕ} (hp : p.Prime) (h1 : 37 ≤ p) (h2 : p ≤ 37) :
     step4Crit p := by
@@ -203,11 +203,6 @@ theorem step4Crit_of_mid {p : ℕ} (hp : p.Prime) (h37 : 37 ≤ p) (h255 : p ≤
 
 /-! ### The wheel -/
 
-theorem not_prime_of_dvd {q d : ℕ} (hd : d.Prime) (h : d ∣ q) (hlt : d < q) : ¬ q.Prime :=
-  fun hq ↦ by
-    have := (Nat.prime_dvd_prime_iff_eq hd hq).mp h
-    omega
-
 /-- The primes in a block of six above `5` are `6M+5` and `6M+7`. -/
 theorem filter_primesBelow_step (M c : ℕ) (hc : 5 ≤ c) :
     ((6 * (M + 1) + 2).primesBelow.filter (c ≤ ·)) ⊆
@@ -222,11 +217,12 @@ theorem filter_primesBelow_step (M c : ℕ) (hc : 5 ≤ c) :
   have hcases : q = 6 * M + 2 ∨ q = 6 * M + 3 ∨ q = 6 * M + 4 ∨ q = 6 * M + 5 ∨
       q = 6 * M + 6 ∨ q = 6 * M + 7 := by omega
   rcases hcases with rfl | rfl | rfl | rfl | rfl | rfl
-  · exact absurd hqp (not_prime_of_dvd Nat.prime_two ⟨3 * M + 1, by ring⟩ (by omega))
-  · exact absurd hqp (not_prime_of_dvd Nat.prime_three ⟨2 * M + 1, by ring⟩ (by omega))
-  · exact absurd hqp (not_prime_of_dvd Nat.prime_two ⟨3 * M + 2, by ring⟩ (by omega))
+  · exact absurd hqp (Nat.not_prime_of_dvd_of_lt (m := 2) ⟨3 * M + 1, by ring⟩ le_rfl (by omega))
+  · exact absurd hqp
+      (Nat.not_prime_of_dvd_of_lt (m := 3) ⟨2 * M + 1, by ring⟩ (by norm_num) (by omega))
+  · exact absurd hqp (Nat.not_prime_of_dvd_of_lt (m := 2) ⟨3 * M + 2, by ring⟩ le_rfl (by omega))
   · simp
-  · exact absurd hqp (not_prime_of_dvd Nat.prime_two ⟨3 * M + 3, by ring⟩ (by omega))
+  · exact absurd hqp (Nat.not_prime_of_dvd_of_lt (m := 2) ⟨3 * M + 3, by ring⟩ le_rfl (by omega))
   · simp
 
 theorem primesBelow_step (M : ℕ) (hM : 1 ≤ M) :
@@ -658,6 +654,25 @@ theorem step4Crit_of_prime {p : ℕ} (hp : p.Prime) (h5 : 5 ≤ p) (h7 : p ≠ 7
     · interval_cases p <;> norm_num at hp
     · exact hge
   · exact step4Crit_of_ge hp h'
+
+/-! ### Exactly `7` fails -/
+
+/-- **The criterion fails at `7`**: `Π₇ = 15/4` and `S₇ = 1/8 + 1/729 + 1/15625`, so
+`Π₇·(S₇ + 1/6) ≈ 1.099`.  The term `2^{-ord₇ 2} = 1/8` alone costs `15/32`. -/
+theorem not_step4Crit_seven : ¬ step4Crit 7 := by
+  rw [step4Crit, piBelow_seven, sOrd_seven]
+  norm_num
+
+/-- **`7` is the only exception**: at a prime `p ≥ 5` the criterion holds exactly
+when `p ≠ 7`. -/
+theorem step4Crit_iff_ne_seven {p : ℕ} (hp : p.Prime) (h5 : 5 ≤ p) :
+    step4Crit p ↔ p ≠ 7 :=
+  ⟨fun h h7 ↦ not_step4Crit_seven (h7 ▸ h), step4Crit_of_prime hp h5⟩
+
+/-- A prime `p ≥ 5` at which the criterion fails is `7`. -/
+theorem eq_seven_of_not_step4Crit {p : ℕ} (hp : p.Prime) (h5 : 5 ≤ p)
+    (hc : ¬ step4Crit p) : p = 7 :=
+  not_not.mp (mt (step4Crit_iff_ne_seven hp h5).mpr hc)
 
 end Step4Criterion
 

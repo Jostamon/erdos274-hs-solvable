@@ -21,6 +21,7 @@ The quotient construction preserves the subgroup indices exactly.
 ## Main definitions
 
 * `Group.ExactCovering.map`
+* `Group.ExactCovering.quotient`
 * `Group.ExactCovering.finiteQuotientCover`
 
 ## Main results
@@ -205,6 +206,14 @@ def map {Q : Type*} [Group Q] (f : G →* Q) (hf : Function.Surjective f)
     have : y ∈ f ⁻¹' (f (P.reps i) • ((P.parts i).map f : Set Q)) := by
       rwa [preimage_map_leftCoset f (P.parts i) (hker i) (P.reps i)]
     exact this
+
+/-- Descend an exact covering to the quotient by a normal subgroup contained in
+every part: `map` along `G → G ⧸ N`. -/
+def quotient (N : Subgroup G) [N.Normal] (hfull : ∀ j, N ≤ P.parts j) :
+    Group.ExactCovering (G ⧸ N) ι :=
+  P.map (QuotientGroup.mk' N) (QuotientGroup.mk'_surjective N) fun j ↦ by
+    rw [QuotientGroup.ker_mk']
+    exact hfull j
 
 /-- The exact covering descended to the finite quotient by the common normal core. -/
 def finiteQuotientCover : Group.ExactCovering (G ⧸ P.commonCore) ι :=

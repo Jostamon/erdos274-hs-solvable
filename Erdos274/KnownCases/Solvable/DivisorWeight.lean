@@ -365,7 +365,7 @@ theorem up_inter_fib {n e : ℕ} (hn : Smooth q n) (he : e ∣ n) (H : Finset �
   have key : ∀ z ∈ fib (vec q n) (vec q e),
       z ∈ up (H.image (vec q) : Set (ι → ℕ)) ↔ ∃ h ∈ H, h ∣ e := by
     intro z hz
-    simp only [up, Finset.coe_image, mem_image, Finset.mem_coe]
+    simp only [up, SetLike.mem_coe, mem_upperClosure, Finset.coe_image, mem_image]
     constructor
     · rintro ⟨_, ⟨h, hh, rfl⟩, hle⟩
       refine ⟨h, hh, (vec_le_iff (hn.of_dvd (hH h hh)) (hn.of_dvd he).1).mp fun i ↦ ?_⟩

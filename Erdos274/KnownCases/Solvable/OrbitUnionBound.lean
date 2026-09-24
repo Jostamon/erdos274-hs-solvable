@@ -306,7 +306,7 @@ lemma ncard_eq_sum_ncard_label {γ : Type*} [Fintype γ] [Finite Ω]
 
 /-- Base case of the orbit-union induction.  Kept separate so Lean does not
 elaborate this branch under the dependent induction motive. -/
-private theorem mass_le_ncard_iUnion_orbit_bot [Finite G] [Finite Ω] :
+private theorem mass_le_ncard_iUnion_orbit_bot [Finite Ω] :
     ∀ (κ : Type w) [Fintype κ] (ω : κ → Ω) (K : κ → Subgroup G), (∀ i, K i ≤ ⊥) →
       (∀ i, ∀ x ∈ orbit (K i) (ω i), Nat.Coprime (orbit (K i) (ω i)).ncard
         (Nat.card (⊥ ⊓ stabilizer G x : Subgroup G))) →

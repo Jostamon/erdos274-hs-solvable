@@ -3,8 +3,8 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon, OpenAI
 -/
-import Erdos274.KnownCases.Solvable.Existing
 import Erdos274.Spectrum.Basic
+import Mathlib.GroupTheory.Solvable
 
 /-!
 # Solvable HS: least-order endpoint and proper-coset subpartitions
@@ -50,18 +50,6 @@ namespace Group.ExactCovering
 variable {G : Type u} [Group G] [Finite G]
 variable {ι : Type v} [Fintype ι]
 
-/-- A proper subgroup of a finite group has strictly smaller cardinality. -/
-theorem natCard_subgroup_lt_of_lt_top
-    (K : Subgroup G) (hK : K < ⊤) :
-    Nat.card K < Nat.card G := by
-  have hindex : 1 < K.index :=
-    Subgroup.one_lt_index_of_ne_top (ne_of_lt hK)
-  calc
-    Nat.card K = Nat.card K * 1 := (Nat.mul_one _).symm
-    _ < Nat.card K * K.index :=
-      Nat.mul_lt_mul_of_pos_left hindex (Nat.card_pos (α := K))
-    _ = Nat.card G := K.card_mul_index
-
 variable [Group.IsSolvable G]
 
 /-- A least-order solvable distinct-index counterexample cannot contain the
@@ -76,7 +64,7 @@ theorem no_properCounterexampleSubpartition_of_solvable_minimality
   rcases hsub with ⟨K, κ, instκ, Q, e, hK, hκ, hfactor⟩
   let : Fintype κ := instκ
   have hKcard : Nat.card K < Nat.card G :=
-    natCard_subgroup_lt_of_lt_top K hK
+    (Subgroup.card_lt_of_lt hK).trans_eq Subgroup.card_top
   have hHS : GroupSatisfiesHerzogSchonheim.{u, v} K :=
     hminimal K hKcard
   obtain ⟨a, b, hab, hlocal⟩ := hHS κ Q hκ

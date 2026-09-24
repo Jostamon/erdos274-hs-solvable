@@ -25,9 +25,10 @@ every smaller solvable group.  `false_of_minimal` shows there is none.  Let
   `∑ 1/dᵢ` falls short of `1` against `∏_{q ∣ |G|} q/(q−1) ≤ 3`.
 * `p ≥ 5`.  `Step4Structure.exists_structure` gives `F = KQ ◁ G`.  Some part
   is non-universal, or the covering descends to `G/F`.
-  - `p = 7`: `SevenCB.false_of_structure`.
-  - `p ≠ 7`: `Step4Closure.false_of_covering`, with (CB) from
-    `SevenCB.cb_loc` and the criterion from `Step4Criterion.step4Crit_of_prime`.
+  - If the criterion `Π_p·(S_p + 1/(p−1)) < 1` holds:
+    `Step4Closure.false_of_covering`, with (CB) from `SevenCB.cb_loc`.
+  - Otherwise `p = 7`, the only prime `p ≥ 5` at which it fails
+    (`Step4Criterion.step4Crit_iff_ne_seven`): `SevenCB.false_of_structure`.
 
 **Step 4 is the case `p² ∣ |G|`.  The argument never uses the exponent of
 `p`**: the localisation `F = KQ`, (CB), the chambers and the closure hold for
@@ -381,13 +382,8 @@ theorem false_of_minimal [Finite G] [Group.IsSolvable G] (C : Group.ExactCoverin
   have h5 : 5 ≤ p := by
     have h4 : p ≠ 4 := by rintro h; rw [h] at hp; norm_num at hp
     omega
-  by_cases hp7 : p = 7
-  · have hmax7 : ∀ q, q.Prime → q ∣ Nat.card G → q ≤ 7 := hp7 ▸ hmax
-    have hQ7 : IsPGroup 7 Q := hp7 ▸ hQ
-    have hK7 : ¬ 7 ∣ Nat.card K := hp7 ▸ hK
-    exact SevenCB.false_of_structure C F hF hQ7 hK7 hKQ hmax7 hdist hneU
-  · refine Step4Closure.false_of_covering C F hpG hmax hdist hneU (fun j hj ↦ ?_)
-      (Step4Criterion.step4Crit_of_prime hp h5 hp7)
+  by_cases hc : Step4Criterion.step4Crit p
+  · refine Step4Closure.false_of_covering C F hpG hmax hdist hneU (fun j hj ↦ ?_) hc
     by_cases hpj : p ∣ loc C F j
     · exact Or.inl hpj
     right
@@ -396,6 +392,11 @@ theorem false_of_minimal [Finite G] [Group.IsSolvable G] (C : Group.ExactCoverin
     have hqG : q ∣ n := hqK.trans (Subgroup.card_subgroup_dvd_card K)
     have hqp : q ≠ p := fun h ↦ hK (h ▸ hqK)
     exact ⟨q, hq, lt_of_le_of_ne (hmax q hq hqG) hqp, hdvd⟩
+  · -- the criterion fails only at `7`
+    have hp7 : p = 7 := Step4Criterion.eq_seven_of_not_step4Crit hp h5 hc
+    clear_value p
+    subst hp7
+    exact SevenCB.false_of_structure C F hF hQ hK hKQ hmax hdist hneU
 
 /-- **Herzog–Schönheim for finite solvable groups.**  In a partition of a
 finite solvable group into at least two left cosets, two of the subgroups have

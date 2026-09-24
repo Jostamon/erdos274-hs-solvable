@@ -337,12 +337,9 @@ theorem false_of_covering [Group.IsSolvable G] [F.Normal]
       Disjoint (shadow C F j) (shadow C F k)) : False := by
   classical
   set t := orderOf (2 : ZMod 7) with ht
-  set q := SevenInstance.q with hqdef
-  have hq : ∀ i, (q i).Prime := fun i ↦ by
-    fin_cases i <;> norm_num [hqdef, SevenInstance.q]
-  have hqi : Function.Injective q := fun a b h ↦ by
-    fin_cases a <;> fin_cases b <;> simp_all [SevenInstance.q]
-  have hr : SevenInstance.r = ratio q := rfl
+  set q := SevenInstance.q
+  have hq : ∀ i, (q i).Prime := SevenInstance.q_prime
+  have hqi : Function.Injective q := SevenInstance.q_injective
   -- smoothness
   have hsm : Smooth q (Nat.card G) := by
     refine ⟨Nat.card_pos.ne', fun p hp ↦ ?_⟩
@@ -479,10 +476,9 @@ theorem false_of_covering [Group.IsSolvable G] [F.Normal]
   have hLOB : W (ratio q) (up (B : Set (Fin 4 → ℕ))) ≤ W (ratio q) univ * a₈ := by
     rw [hWu]
     exact (hsubT J8 B fun x hx ↦ (Finset.mem_filter.mp hx).2).trans (hLOT J8)
-  rw [← hr] at hLO hLOA hLOB ha
   exact SevenInstance.seven (t := t) (t₃ := orderOf (3 : ZMod 7)) (t₅ := orderOf (5 : ZMod 7))
     rfl rfl rfl (isAntichain_minimals HS) hH₀ne (Finset.filter_subset _ _) hd l hhd hCB' h78
-    hinj hA' hB' ν a₇ a₈ (by rw [hr]) ha hLO hLOA hLOB
+    hinj hA' hB' ν a₇ a₈ le_rfl ha hLO hLOA hLOB
 
 end Join
 

@@ -10,8 +10,9 @@ import Erdos274.ExactCovering.Quotient
 This file relates the different cardinality notions used for subgroup parts of an exact coset
 covering and studies their behaviour under passage to the common-core quotient.
 
-It records the distinction between genuine cardinality `Cardinal.mk`, finite cardinality
-`Nat.card`, and extended-natural cardinality `ENat.card`. It proves a cardinal factorization
+It relates genuine cardinality `Cardinal.mk`, finite cardinality `Nat.card`, and
+extended-natural cardinality `ENat.card` (Mathlib's `Nat.cast_card`,
+`ENat.card_eq_coe_natCard`, `ENat.one_lt_card_iff_nontrivial`). It proves a cardinal factorization
 formula for subgroups containing the kernel of a homomorphism and applies it to the canonical
 common-core quotient cover.
 
@@ -21,9 +22,7 @@ part cardinality is automatic for every nontrivial finite exact covering.
 
 ## Main results
 
-* `cardinalMk_eq_iff_equiv`
-* `cardinalMk_eq_natCard_of_finite`
-* `one_lt_enatCard_iff_nontrivial`
+* `natCard_eq_iff_cardinalMk_eq`
 * `cardinalMk_eq_map_mul_kernel`
 * `cardinalMk_eq_of_map_cardinalMk_eq`
 * `finiteQuotientCover_part_cardinalMk`
@@ -40,46 +39,10 @@ section CardinalSemantics
 
 variable {α β : Type u}
 
-/-- `#α` is genuine cardinality: equality means the types are equivalent. -/
-theorem cardinalMk_eq_iff_equiv : #α = #β ↔ Nonempty (α ≃ β) :=
-  Cardinal.eq
-
-/-- On finite types, `Cardinal.mk` is the natural cardinal embedded in `Cardinal`. -/
-theorem cardinalMk_eq_natCard_of_finite [Finite α] :
-    #α = (Nat.card α : Cardinal) :=
-  Nat.cast_card.symm
-
-/-- On infinite types, `Nat.card` has its documented junk value `0`. -/
-theorem natCard_eq_zero_of_infinite [Infinite α] : Nat.card α = 0 :=
-  Nat.card_eq_zero_of_infinite
-
-/-- On infinite types, `ENat.card` records infinity as `⊤`. -/
-theorem enatCard_eq_top_of_infinite [Infinite α] : ENat.card α = ⊤ :=
-  ENat.card_eq_top_of_infinite
-
-/-- On finite types, `ENat.card` is the natural cardinal embedded in `ENat`. -/
-theorem enatCard_eq_natCard_of_finite [Finite α] : ENat.card α = Nat.card α :=
-  ENat.card_eq_coe_natCard α
-
-/-- The ambient hypothesis `1 < ENat.card α` says exactly that `α` is nontrivial. -/
-theorem one_lt_enatCard_iff_nontrivial : 1 < ENat.card α ↔ Nontrivial α :=
-  ENat.one_lt_card_iff_nontrivial α
-
-/-- An infinite type has cardinal at least `ℵ₀`; unlike `Nat.card`, `#` does not collapse it. -/
-theorem infinite_iff_aleph0_le_cardinalMk : Infinite α ↔ ℵ₀ ≤ #α :=
-  Cardinal.infinite_iff
-
 /-- For finite types, equality of natural cardinals and equality of true cardinals agree. -/
 theorem natCard_eq_iff_cardinalMk_eq [Finite α] [Finite β] :
     Nat.card α = Nat.card β ↔ #α = #β := by
-  constructor
-  · intro h
-    calc
-      #α = (Nat.card α : Cardinal) := Nat.cast_card.symm
-      _ = (Nat.card β : Cardinal) := congrArg (fun n : ℕ ↦ (n : Cardinal)) h
-      _ = #β := Nat.cast_card
-  · intro h
-    simpa only [Nat.card] using congrArg Cardinal.toNat h
+  rw [← Nat.cast_card, ← Nat.cast_card, Nat.cast_inj]
 
 /-- For finite types, equality of extended-natural cardinals and natural cardinals agree. -/
 theorem enatCard_eq_iff_natCard_eq [Finite α] [Finite β] :

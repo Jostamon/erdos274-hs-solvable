@@ -47,119 +47,44 @@ universe u
 
 variable {G : Type u} [Group G]
 
-/-! ### Conjugation invariance -/
+/-! ### Normalisers -/
 
-/-- `g` maps `A` into itself by conjugation. -/
-def Normalizes (g : G) (A : Subgroup G) : Prop := ∀ x ∈ A, g * x * g⁻¹ ∈ A
-
-theorem Normalizes.mul {g h : G} {A : Subgroup G} (hg : Normalizes g A) (hh : Normalizes h A) :
-    Normalizes (g * h) A := fun x hx ↦ by
-  have e : g * h * x * (g * h)⁻¹ = g * (h * x * h⁻¹) * g⁻¹ := by group
-  rw [e]
-  exact hg _ (hh x hx)
-
-theorem normalizes_of_mem {g : G} {A : Subgroup G} (hg : g ∈ A) : Normalizes g A :=
-  fun _ hx ↦ A.mul_mem (A.mul_mem hg hx) (A.inv_mem hg)
-
-theorem normalizes_of_normal {g : G} {A : Subgroup G} (hA : A.Normal) : Normalizes g A :=
-  fun x hx ↦ hA.conj_mem x hx g
-
-theorem normalizes_of_mem_normalizer {g : G} {A : Subgroup G}
-    (hg : g ∈ Subgroup.normalizer (A : Set G)) : Normalizes g A :=
-  fun x hx ↦ (Subgroup.mem_normalizer_iff.mp hg x).mp hx
-
-theorem Normalizes.commutator {g : G} {A B : Subgroup G} (hA : Normalizes g A)
-    (hB : Normalizes g B) : Normalizes g ⁅A, B⁆ := by
-  have key : ⁅A, B⁆ ≤ ⁅A, B⁆.comap (MulAut.conj g).toMonoidHom := by
-    rw [Subgroup.commutator_le]
-    intro x hx y hy
-    rw [Subgroup.mem_comap, MulEquiv.coe_toMonoidHom, MulAut.conj_apply]
-    have e : g * ⁅x, y⁆ * g⁻¹ = ⁅g * x * g⁻¹, g * y * g⁻¹⁆ := by
-      simp only [commutatorElement_def]
-      group
-    rw [e]
-    exact Subgroup.commutator_mem_commutator (hA x hx) (hB y hy)
-  intro x hx
-  have h := key hx
-  rwa [Subgroup.mem_comap, MulEquiv.coe_toMonoidHom, MulAut.conj_apply] at h
-
-theorem Normalizes.sup {g : G} {A B : Subgroup G} (hA : Normalizes g A) (hB : Normalizes g B) :
-    Normalizes g (A ⊔ B) := by
-  have key : A ⊔ B ≤ (A ⊔ B).comap (MulAut.conj g).toMonoidHom := by
-    refine sup_le (fun x hx ↦ ?_) (fun x hx ↦ ?_) <;>
-      rw [Subgroup.mem_comap, MulEquiv.coe_toMonoidHom, MulAut.conj_apply]
-    · exact Subgroup.mem_sup_left (hA x hx)
-    · exact Subgroup.mem_sup_right (hB x hx)
-  intro x hx
-  have h := key hx
-  rwa [Subgroup.mem_comap, MulEquiv.coe_toMonoidHom, MulAut.conj_apply] at h
-
-/-- `[A,B]` is normalised by `A`. -/
-theorem normalizes_commutator_left {A B : Subgroup G} {a : G} (ha : a ∈ A) :
-    Normalizes a ⁅A, B⁆ := by
-  have key : ⁅A, B⁆ ≤ ⁅A, B⁆.comap (MulAut.conj a).toMonoidHom := by
-    rw [Subgroup.commutator_le]
-    intro x hx y hy
-    rw [Subgroup.mem_comap, MulEquiv.coe_toMonoidHom, MulAut.conj_apply]
-    have e : a * ⁅x, y⁆ * a⁻¹ = ⁅a * x, y⁆ * ⁅a, y⁆⁻¹ := by
-      simp only [commutatorElement_def]
-      group
-    rw [e]
-    exact Subgroup.mul_mem _ (Subgroup.commutator_mem_commutator (A.mul_mem ha hx) hy)
-      (Subgroup.inv_mem _ (Subgroup.commutator_mem_commutator ha hy))
-  intro x hx
-  have h := key hx
-  rwa [Subgroup.mem_comap, MulEquiv.coe_toMonoidHom, MulAut.conj_apply] at h
-
-/-- `[A,B]` is normalised by `B`. -/
-theorem normalizes_commutator_right {A B : Subgroup G} {b : G} (hb : b ∈ B) :
-    Normalizes b ⁅A, B⁆ := by
-  rw [Subgroup.commutator_comm]
-  exact normalizes_commutator_left hb
-
-/-- A subgroup that every element normalises is normal. -/
-theorem normal_of_normalizes {A : Subgroup G} (h : ∀ g, Normalizes g A) : A.Normal :=
-  ⟨fun x hx g ↦ h g x hx⟩
+/-- `N_G(A) ⊓ N_G(B)` normalises `[A,B]`: conjugation commutes with the
+commutator (`Subgroup.map_commutator`). -/
+theorem inf_normalizer_le_normalizer_commutator (A B : Subgroup G) :
+    Subgroup.normalizer (A : Set G) ⊓ Subgroup.normalizer (B : Set G) ≤
+      Subgroup.normalizer ((⁅A, B⁆ : Subgroup G) : Set G) := by
+  intro g hg
+  rw [Subgroup.mem_inf, Subgroup.mem_normalizer_iff_map_conj_eq,
+    Subgroup.mem_normalizer_iff_map_conj_eq] at hg
+  rw [Subgroup.mem_normalizer_iff_map_conj_eq, Subgroup.map_commutator, hg.1, hg.2]
 
 variable [Finite G]
 
 /-- In a finite group, conjugating a subgroup into itself normalises it. -/
-theorem mem_normalizer_of_normalizes {g : G} {A : Subgroup G} (h : Normalizes g A) :
+theorem mem_normalizer_of_conj_mem {g : G} {A : Subgroup G} (h : ∀ x ∈ A, g * x * g⁻¹ ∈ A) :
     g ∈ Subgroup.normalizer (A : Set G) := by
   have hle : A.map (MulAut.conj g).toMonoidHom ≤ A := by
     rintro _ ⟨x, hx, rfl⟩
     exact h x hx
-  have heq : A.map (MulAut.conj g).toMonoidHom = A :=
-    Subgroup.eq_of_le_of_card_ge hle
-      (by rw [Subgroup.card_map_of_injective (MulAut.conj g).injective])
-  rw [Subgroup.mem_normalizer_iff]
-  intro x
-  refine ⟨h x, fun hx ↦ ?_⟩
-  rw [← heq] at hx
-  obtain ⟨y, hy, e⟩ := hx
-  rw [MulEquiv.coe_toMonoidHom, MulAut.conj_apply] at e
-  have : y = x := by simpa using e
-  exact this ▸ hy
+  rw [Subgroup.mem_normalizer_iff_map_conj_eq]
+  exact Subgroup.eq_of_le_of_card_ge hle
+    (by rw [Subgroup.card_map_of_injective (MulAut.conj g).injective])
 
 /-! ### Coprimality -/
-
-/-- A `p`-subgroup of a `p′`-group is trivial. -/
-theorem eq_bot_of_pGroup_of_le {p : ℕ} [hp : Fact p.Prime] {X N : Subgroup G}
-    (hX : IsPGroup p X) (hXN : X ≤ N) (hN : ¬ p ∣ Nat.card N) : X = ⊥ := by
-  obtain ⟨k, hk⟩ := IsPGroup.iff_card.mp hX
-  have hdvd : Nat.card X ∣ Nat.card N := Subgroup.card_dvd_of_le hXN
-  cases k with
-  | zero => exact Subgroup.eq_bot_of_card_eq X (by simpa using hk)
-  | succ k =>
-    exact absurd ((dvd_pow_self p (Nat.succ_ne_zero k)).trans (hk ▸ hdvd)) hN
 
 /-- An element of a normal `p′`-subgroup that normalises a `p`-subgroup
 centralises it. -/
 theorem commute_of_normalizes {p : ℕ} [Fact p.Prime] {N Q : Subgroup G} [N.Normal]
-    (hN : ¬ p ∣ Nat.card N) (hQ : IsPGroup p Q) {c : G} (hc : c ∈ N) (hcQ : Normalizes c Q)
-    {y : G} (hy : y ∈ Q) : c * y = y * c := by
-  have hbot : N ⊓ Q = ⊥ := eq_bot_of_pGroup_of_le hQ.to_inf_right inf_le_left hN
-  have h1 : c * y * c⁻¹ * y⁻¹ ∈ Q := Q.mul_mem (hcQ y hy) (Q.inv_mem hy)
+    (hN : ¬ p ∣ Nat.card N) (hQ : IsPGroup p Q) {c : G} (hc : c ∈ N)
+    (hcQ : c ∈ Subgroup.normalizer (Q : Set G)) {y : G} (hy : y ∈ Q) : c * y = y * c := by
+  have hbot : N ⊓ Q = ⊥ := by
+    obtain ⟨k, hk⟩ := IsPGroup.iff_card.mp hQ
+    refine disjoint_iff.mp (Subgroup.disjoint_of_coprime_natCard ?_)
+    rw [hk]
+    exact ((Nat.Prime.coprime_iff_not_dvd Fact.out).mpr hN).symm.pow_right k
+  have h1 : c * y * c⁻¹ * y⁻¹ ∈ Q :=
+    Q.mul_mem ((Subgroup.mem_normalizer_iff.mp hcQ y).mp hy) (Q.inv_mem hy)
   have h2 : c * y * c⁻¹ * y⁻¹ ∈ N := by
     have : y * c⁻¹ * y⁻¹ ∈ N := Subgroup.Normal.conj_mem inferInstance _ (N.inv_mem hc) y
     have e : c * y * c⁻¹ * y⁻¹ = c * (y * c⁻¹ * y⁻¹) := by group
@@ -175,7 +100,7 @@ theorem commute_of_normalizes {p : ℕ} [Fact p.Prime] {N Q : Subgroup G} [N.Nor
 theorem exists_mul_centralizing {p : ℕ} [Fact p.Prime] {N Q : Subgroup G} [N.Normal]
     (hN : ¬ p ∣ Nat.card N) (hQ : IsPGroup p Q) (hK : (⁅N, Q⁆ : Subgroup G).Normal)
     {n : G} (hn : n ∈ N) :
-    ∃ k ∈ ⁅N, Q⁆, ∃ c ∈ N, Normalizes c Q ∧ n = k * c := by
+    ∃ k ∈ ⁅N, Q⁆, ∃ c ∈ N, c ∈ Subgroup.normalizer (Q : Set G) ∧ n = k * c := by
   set K : Subgroup G := ⁅N, Q⁆ with hKdef
   have hKN : K ≤ N := Subgroup.commutator_le_left N Q
   set L := K ⊔ Q with hL
@@ -196,8 +121,8 @@ theorem exists_mul_centralizing {p : ℕ} [Fact p.Prime] {N Q : Subgroup G} [N.N
   have hQnL : IsPGroup p (Qn.subgroupOf L) :=
     (hQ.map _).comap_of_injective L.subtype L.subtype_injective
   obtain ⟨h, hh⟩ := CyclotomicBlock.exists_conj_mem_of_not_dvd hQnL hidx
-  have hm : Normalizes ((h : G)⁻¹ * n) Q := by
-    intro y hy
+  have hm : (h : G)⁻¹ * n ∈ Subgroup.normalizer (Q : Set G) := by
+    refine mem_normalizer_of_conj_mem fun y hy ↦ ?_
     have hyL : (⟨n * y * n⁻¹, hnL y hy⟩ : L) ∈ Qn.subgroupOf L := by
       rw [Subgroup.mem_subgroupOf]
       exact ⟨y, hy, by rw [MulEquiv.coe_toMonoidHom, MulAut.conj_apply]⟩
@@ -213,7 +138,7 @@ theorem exists_mul_centralizing {p : ℕ} [Fact p.Prime] {N Q : Subgroup G} [N.N
   refine ⟨k, hk, k⁻¹ * n, N.mul_mem (N.inv_mem (hKN hk)) hn, ?_, by group⟩
   have e : k⁻¹ * n = x * ((h : G)⁻¹ * n) := by rw [← hkx]; group
   rw [e]
-  exact (normalizes_of_mem hx).mul hm
+  exact Subgroup.mul_mem _ (Subgroup.le_normalizer (H := Q) hx) hm
 
 /-! ### The construction -/
 
@@ -304,29 +229,26 @@ theorem exists_structure [Group.IsSolvable G] {p : ℕ} [hp : Fact p.Prime]
   set K : Subgroup G := ⁅N, Q⁆ with hKdef
   have hKN : K ≤ N := Subgroup.commutator_le_left N Q
   -- anything normalised by `N_G(Q)`, `N` and `Q` is normal
-  have hgen : ∀ X : Subgroup G, (∀ g ∈ Subgroup.normalizer (Q : Set G), Normalizes g X) →
-      (∀ n ∈ N, Normalizes n X) → (∀ y ∈ Q, Normalizes y X) → X.Normal := by
+  have hgen : ∀ X : Subgroup G, Subgroup.normalizer (Q : Set G) ≤ Subgroup.normalizer X →
+      N ≤ Subgroup.normalizer X → Q ≤ Subgroup.normalizer X → X.Normal := by
     intro X h1 h2 h3
-    refine normal_of_normalizes fun g ↦ ?_
-    have hg : g ∈ ((Subgroup.normalizer (Q : Set G) ⊔ V : Subgroup G) : Set G) := by
-      rw [hFr]; trivial
-    rw [Subgroup.mul_normal] at hg
-    obtain ⟨a, ha, v, hv, rfl⟩ := hg
-    have hv' : v ∈ ((N ⊔ Q : Subgroup G) : Set G) := hVNQ hv
-    rw [Subgroup.normal_mul] at hv'
-    obtain ⟨n, hn, y, hy, rfl⟩ := hv'
-    exact (h1 a ha).mul ((h2 n hn).mul (h3 y hy))
+    rw [← Subgroup.normalizer_eq_top_iff, eq_top_iff, ← hFr]
+    exact sup_le h1 (hVNQ.trans (sup_le h2 h3))
   have hKnorm : K.Normal := hgen K
-    (fun g hg ↦ (normalizes_of_normal hNn).commutator (normalizes_of_mem_normalizer hg))
-    (fun n hn ↦ normalizes_commutator_left hn) (fun y hy ↦ normalizes_commutator_right hy)
+    ((le_inf Subgroup.le_normalizer_of_normal le_rfl).trans
+      (inf_normalizer_le_normalizer_commutator N Q))
+    (Subgroup.normalizer_commutator_ge_left N Q) (Subgroup.normalizer_commutator_ge_right N Q)
+  have := hKnorm
   -- `N = K·C_N(Q)`
   have hsplit := fun n (hn : n ∈ N) ↦ exists_mul_centralizing hNp hQ hKnorm hn
   have hFnorm : (K ⊔ Q).Normal := by
-    refine hgen _ (fun g hg ↦ (normalizes_of_normal hKnorm).sup (normalizes_of_mem_normalizer hg))
-      (fun n hn ↦ ?_) (fun y hy ↦ normalizes_of_mem (Subgroup.mem_sup_right hy))
+    refine hgen _ ((le_inf Subgroup.le_normalizer_of_normal le_rfl).trans
+        (K.inf_normalizer_le_normalizer_sup Q)) (fun n hn ↦ ?_)
+      (le_sup_right.trans (Subgroup.le_normalizer (H := K ⊔ Q)))
     obtain ⟨k, hk, c, hcN, hcQ, rfl⟩ := hsplit n hn
-    exact (normalizes_of_mem (Subgroup.mem_sup_left hk)).mul
-      ((normalizes_of_normal hKnorm).sup hcQ)
+    exact Subgroup.mul_mem _ (Subgroup.le_normalizer (H := K ⊔ Q) (Subgroup.mem_sup_left hk))
+      (K.inf_normalizer_le_normalizer_sup Q
+        ⟨Subgroup.le_normalizer_of_normal (K := ⊤) (Subgroup.mem_top c), hcQ⟩)
   refine ⟨K, Q, hKnorm, hFnorm, hQ, hQne, fun h ↦ hNp (h.trans (Subgroup.card_dvd_of_le hKN)),
     le_antisymm (Subgroup.commutator_le_left K Q) ?_⟩
   -- `[N,Q] ≤ [K,Q]`

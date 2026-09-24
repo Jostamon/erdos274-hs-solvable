@@ -107,20 +107,8 @@ theorem conj_mem_of_mem_normalizer {X : Subgroup H} {x y : H}
 /-- A subgroup normalising `M` normalises `M ⊔ V` when `V` is normal. -/
 theorem le_normalizer_sup {Q M V : Subgroup H} [V.Normal]
     (hM : Q ≤ Subgroup.normalizer (M : Set H)) :
-    Q ≤ Subgroup.normalizer ((M ⊔ V : Subgroup H) : Set H) := by
-  have key : ∀ x ∈ Q, ∀ h ∈ M ⊔ V, x * h * x⁻¹ ∈ M ⊔ V := by
-    intro x hx h hh
-    have hh' : h ∈ ((M ⊔ V : Subgroup H) : Set H) := hh
-    rw [Subgroup.mul_normal M V] at hh'
-    obtain ⟨m, hm, v, hv, rfl⟩ := hh'
-    have e : x * (m * v) * x⁻¹ = (x * m * x⁻¹) * (x * v * x⁻¹) := by group
-    rw [e]
-    exact Subgroup.mul_mem _ (Subgroup.mem_sup_left (conj_mem_of_mem_normalizer (hM hx) hm))
-      (Subgroup.mem_sup_right (Subgroup.Normal.conj_mem inferInstance v hv x))
-  intro x hx
-  refine Subgroup.mem_normalizer_iff.mpr fun h ↦ ⟨key x hx h, fun hh ↦ ?_⟩
-  have := key x⁻¹ (Q.inv_mem hx) _ hh
-  simpa [mul_assoc] using this
+    Q ≤ Subgroup.normalizer ((M ⊔ V : Subgroup H) : Set H) :=
+  (le_inf hM Subgroup.le_normalizer_of_normal).trans (M.inf_normalizer_le_normalizer_sup V)
 
 section Core
 
@@ -300,21 +288,9 @@ theorem cyclotomic_block_index [Group.IsSolvable H] {p : ℕ} [Fact p.Prime]
     apply hY
     rw [← Subgroup.index_eq_one, ← hidx, h, Subgroup.index_top]
   -- `W = Y₁ ⊓ K` is a proper `Q`-invariant subgroup of `K`
-  have hWQ : Q ≤ Subgroup.normalizer ((Y₁ ⊓ K : Subgroup H) : Set H) := by
-    intro x hx
-    have hxY := hQY hx
-    rw [Subgroup.mem_normalizer_iff]
-    intro h
-    simp only [Subgroup.mem_inf]
-    constructor
-    · rintro ⟨h1, h2⟩
-      exact ⟨Y₁.mul_mem (Y₁.mul_mem hxY h1) (Y₁.inv_mem hxY),
-        Subgroup.Normal.conj_mem inferInstance h h2 x⟩
-    · rintro ⟨h1, h2⟩
-      have e : h = x⁻¹ * (x * h * x⁻¹) * x := by group
-      rw [e]
-      refine ⟨Y₁.mul_mem (Y₁.mul_mem (Y₁.inv_mem hxY) h1) hxY, ?_⟩
-      simpa using Subgroup.Normal.conj_mem inferInstance _ h2 x⁻¹
+  have hWQ : Q ≤ Subgroup.normalizer ((Y₁ ⊓ K : Subgroup H) : Set H) :=
+    (le_inf (hQY.trans Subgroup.le_normalizer) Subgroup.le_normalizer_of_normal).trans
+      (Subgroup.inf_normalizer_le_normalizer_inf (H := Y₁) (K := K))
   have hsup₁ : Y₁ ⊔ K = ⊤ :=
     eq_top_iff.mpr (hsup ▸ sup_le le_sup_right (hQY.trans le_sup_left))
   have hWne : Y₁ ⊓ K ≠ K := by

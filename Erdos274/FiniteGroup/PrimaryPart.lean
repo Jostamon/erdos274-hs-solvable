@@ -7,6 +7,7 @@ import Mathlib.Algebra.Group.Pointwise.Set.Card
 import Mathlib.Data.Nat.Factorization.Basic
 import Mathlib.GroupTheory.Perm.Cycle.Type
 import Mathlib.GroupTheory.QuotientGroup.Basic
+import Mathlib.GroupTheory.Sylow
 import Mathlib.Order.BourbakiWitt
 
 /-!
@@ -168,42 +169,17 @@ lemma ncard_image_mk_smul_coset (K : Subgroup G) [K.Normal] (x : G)
       from rfl,
     image_smul_coset (QuotientGroup.mk' K) x L, ncard_smul_coset]
 
+omit [Finite G] in
 /-- A set saturated for the quotient by `P` (closed under the `P`-fibers of
-its elements) has cardinality `|P|` times the cardinality of its image. -/
+its elements) has cardinality `|P|` times the cardinality of its image:
+it is the preimage of its image (`QuotientGroup.card_preimage_mk`). -/
 lemma ncard_eq_card_mul_ncard_image {P : Subgroup G} {S : Set G}
     (hsat : ∀ x ∈ S, ∀ y : G,
       (QuotientGroup.mk y : G ⧸ P) = QuotientGroup.mk x → y ∈ S) :
     S.ncard = Nat.card P * (QuotientGroup.mk '' S : Set (G ⧸ P)).ncard := by
-  classical
-  have : Fintype (G ⧸ P) := Fintype.ofFinite _
-  rw [ncard_eq_sum_fiber_ncard S P]
-  have hterm : ∀ c : G ⧸ P, (S ∩ QuotientGroup.mk ⁻¹' {c}).ncard =
-      if c ∈ QuotientGroup.mk '' S then Nat.card P else 0 := by
-    intro c
-    by_cases hc : c ∈ QuotientGroup.mk '' S
-    · rw [ite_eq_left hc]
-      obtain ⟨x, hxS, hxc⟩ := hc
-      have hfib_sub : (QuotientGroup.mk ⁻¹' {c} : Set G) ⊆ S := by
-        intro y hy
-        rw [Set.mem_preimage, Set.mem_singleton_iff] at hy
-        exact hsat x hxS y (by rw [hy, ← hxc])
-      rw [Set.inter_eq_self_of_subset_right hfib_sub]
-      obtain ⟨z, hz⟩ := QuotientGroup.mk_surjective c
-      rw [← hz, preimage_mk_singleton_eq, ncard_smul_coset]
-    · rw [ite_eq_right hc]
-      have hempty : S ∩ QuotientGroup.mk ⁻¹' {c} = ∅ := by
-        rw [Set.eq_empty_iff_forall_notMem]
-        rintro y ⟨hyS, hyc⟩
-        rw [Set.mem_preimage, Set.mem_singleton_iff] at hyc
-        exact hc ⟨y, hyS, hyc⟩
-      rw [hempty, Set.ncard_empty]
-  rw [Finset.sum_congr rfl (fun c _ ↦ hterm c), Finset.sum_ite,
-    Finset.sum_const, Finset.sum_const_zero, add_zero, smul_eq_mul, mul_comm]
-  congr 1
-  rw [Set.ncard_eq_toFinset_card']
-  congr 1
-  ext c
-  simp
+  have hS : QuotientGroup.mk ⁻¹' (QuotientGroup.mk '' S : Set (G ⧸ P)) = S :=
+    (Set.subset_preimage_image _ S).antisymm' fun y ⟨x, hxS, hxy⟩ ↦ hsat x hxS y hxy.symm
+  rw [← Nat.card_coe_set_eq, ← Nat.card_coe_set_eq, ← QuotientGroup.card_preimage_mk, hS]
 
 end CosetHelpers
 
