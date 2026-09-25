@@ -102,8 +102,7 @@ theorem W_singleton (z : ι → ℕ) : W r {z} = w r z := by
   exact indicator_of_mem rfl _
 
 theorem W_finset (s : Finset (ι → ℕ)) : W r (s : Set (ι → ℕ)) = ∑ z ∈ s, w r z := by
-  rw [W, tsum_eq_sum (s := s) fun z hz ↦ indicator_of_notMem (by simpa using hz) _]
-  exact Finset.sum_congr rfl fun z hz ↦ indicator_of_mem (by simpa using hz) _
+  exact (sum_eq_tsum_indicator (w r) s).symm
 
 /-! ### Translation is exact -/
 

@@ -89,10 +89,8 @@ lemma mass_sdiff_add_mass_inter (S T : Finset ℕ) :
 lemma mass_union_add_mass_inter (S T : Finset ℕ) :
     mass (S ∪ T) + mass (S ∩ T) = mass S + mass T := by
   classical
-  have hu : mass (S ∪ T) = mass S + mass (T \ S) := by
-    rw [mass, mass, mass, show S ∪ T = S ∪ (T \ S) from by ext x; simp,
-      Finset.sum_union Finset.disjoint_sdiff]
-  rw [hu, add_assoc, Finset.inter_comm S T, mass_sdiff_add_mass_inter]
+  simp only [mass]
+  exact Finset.sum_union_inter
 
 /-- Totient mass is subadditive over a finite indexed union. -/
 lemma mass_biUnion_le {I : Type*} (s : Finset I)

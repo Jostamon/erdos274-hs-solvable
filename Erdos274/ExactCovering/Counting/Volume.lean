@@ -128,6 +128,18 @@ theorem finiteQuotientCover_cardinalMk_eq_iff
 
 end FiniteGroups
 
+/-- Equal indices of two parts of an exact finite coset cover imply equal
+cardinalities, even when the ambient group is infinite. The finite common-core
+quotient transfers the equality, and the kernel factor is common to both parts. -/
+theorem exactCovering_cardinalMk_eq_of_index_eq {G : Type u} [Group G]
+    {ι : Type v} [Fintype ι] (P : Group.ExactCovering G ι) (i j : ι)
+    (h : (P.parts i).index = (P.parts j).index) :
+    #(P.parts i) = #(P.parts j) := by
+  let : Finite (G ⧸ P.commonCore) := P.finite_commonCore_quotient
+  apply finiteQuotientCover_cardinalMk_eq_imp P i j
+  apply (subgroup_cardinalMk_eq_iff_index_eq _ _).mpr
+  simpa only [P.finiteQuotientCover_part_index] using h
+
 /-- Every exact finite coset cover has reciprocal index sum one, even in an infinite group. -/
 theorem exactCovering_sum_inv_index {G : Type u} [Group G]
     {i : Type v} [Fintype i] (P : Group.ExactCovering G i) :

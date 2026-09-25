@@ -5,6 +5,7 @@ Authors: Murali Menon
 -/
 import Erdos274.KnownCases.Solvable.SevenClosure
 import Erdos274.KnownCases.Solvable.DivisorWeight
+import Erdos274.Arithmetic.PrimeOrder
 import Mathlib.Data.ZMod.Basic
 import Mathlib.GroupTheory.OrderOfElement
 import Mathlib.Tactic.NormNum.Prime
@@ -39,15 +40,13 @@ open scoped ENNReal NNReal
 
 /-- The multiplicative orders modulo `7` that fix the witness lengths. -/
 theorem orderOf_two : orderOf (2 : ZMod 7) = 3 :=
-  orderOf_eq_prime_pow (p := 3) (n := 0) (by decide) (by decide) |>.trans (by norm_num)
+  PrimeOrder.ordMod_seven_two
 
-theorem orderOf_three : orderOf (3 : ZMod 7) = 6 := by
-  rw [orderOf_eq_iff (by norm_num)]
-  exact ⟨by decide, by decide⟩
+theorem orderOf_three : orderOf (3 : ZMod 7) = 6 :=
+  PrimeOrder.ordMod_seven_three
 
-theorem orderOf_five : orderOf (5 : ZMod 7) = 6 := by
-  rw [orderOf_eq_iff (by norm_num)]
-  exact ⟨by decide, by decide⟩
+theorem orderOf_five : orderOf (5 : ZMod 7) = 6 :=
+  PrimeOrder.ordMod_seven_five
 
 /-- The primes of `|G|`, in coordinate order. -/
 def q : Fin 4 → ℕ := ![2, 3, 5, 7]

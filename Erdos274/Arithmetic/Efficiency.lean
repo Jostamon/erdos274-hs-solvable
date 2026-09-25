@@ -45,8 +45,28 @@ lemma one_le_mertensProd_factor {q : ℕ} (hq : q.Prime) : 1 ≤ (q : ℚ) / (q 
   rw [le_div_iff₀ (by linarith)]
   linarith
 
+lemma one_le_mertensProd_factor_of_two_le {q : ℕ} (hq : 2 ≤ q) :
+    1 ≤ (q : ℚ) / (q - 1) := by
+  have hq' : (2 : ℚ) ≤ q := by exact_mod_cast hq
+  rw [le_div_iff₀ (by linarith)]
+  linarith
+
 lemma mertensProd_nonneg {Q : Finset ℕ} (hQ : ∀ q ∈ Q, q.Prime) : 0 ≤ mertensProd Q :=
   Finset.prod_nonneg fun q hq ↦ mertensProd_factor_nonneg (hQ q hq)
+
+theorem mertensProd_le_of_subset_two_le {Q Q' : Finset ℕ} (hQ' : ∀ q ∈ Q', 2 ≤ q)
+    (hsub : Q ⊆ Q') : mertensProd Q ≤ mertensProd Q' := by
+  have hrest : 1 ≤ ∏ q ∈ Q' \ Q, (q : ℚ) / (q - 1) := by
+    refine Finset.prod_induction _ (fun x : ℚ ↦ 1 ≤ x)
+      (fun a b ha hb ↦ one_le_mul_of_one_le_of_one_le ha hb) le_rfl ?_
+    intro q hq
+    exact one_le_mertensProd_factor_of_two_le (hQ' q (Finset.mem_sdiff.mp hq).1)
+  have hQ0 : 0 ≤ mertensProd Q :=
+    Finset.prod_nonneg fun q hq ↦
+      (le_trans (by norm_num) (one_le_mertensProd_factor_of_two_le (hQ' q (hsub hq))))
+  have hsplit : (∏ q ∈ Q' \ Q, (q : ℚ) / (q - 1)) * mertensProd Q = mertensProd Q' :=
+    Finset.prod_sdiff hsub
+  nlinarith
 
 /-- `s ≤ M(Q) · φ(s)` when every prime factor of `s` lies in `Q`. -/
 theorem le_mertensProd_mul_totient {Q : Finset ℕ} (hQ : ∀ q ∈ Q, q.Prime) {s : ℕ}
@@ -90,16 +110,8 @@ so enlarging the set of primes enlarges the product.
 This is what licenses replacing `M_G′ = M(primes of |G| other than p)` by
 `Π_p = M(primes below p)` when `p` is the largest prime divisor of `|G|`. -/
 theorem mertensProd_le_of_subset {Q Q' : Finset ℕ} (hQ' : ∀ q ∈ Q', q.Prime)
-    (hsub : Q ⊆ Q') : mertensProd Q ≤ mertensProd Q' := by
-  have hrest : 1 ≤ ∏ q ∈ Q' \ Q, (q : ℚ) / (q - 1) := by
-    refine Finset.prod_induction _ (fun x : ℚ ↦ 1 ≤ x)
-      (fun a b ha hb ↦ one_le_mul_of_one_le_of_one_le ha hb) le_rfl ?_
-    intro q hq
-    exact one_le_mertensProd_factor (hQ' q (Finset.mem_sdiff.mp hq).1)
-  have hQ0 : 0 ≤ mertensProd Q := mertensProd_nonneg fun q hq ↦ hQ' q (hsub hq)
-  have hsplit : (∏ q ∈ Q' \ Q, (q : ℚ) / (q - 1)) * mertensProd Q = mertensProd Q' :=
-    Finset.prod_sdiff hsub
-  nlinarith
+    (hsub : Q ⊆ Q') : mertensProd Q ≤ mertensProd Q' :=
+  mertensProd_le_of_subset_two_le (fun q hq ↦ (hQ' q hq).two_le) hsub
 
 /-- **Lemma E.**  If every `s ∈ R` is positive with prime factors in `Q`, then
 `Σ_{s ∈ R} s ≤ M(Q) · μ(D(R))`. -/

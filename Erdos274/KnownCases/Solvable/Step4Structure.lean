@@ -63,13 +63,8 @@ variable [Finite G]
 
 /-- In a finite group, conjugating a subgroup into itself normalises it. -/
 theorem mem_normalizer_of_conj_mem {g : G} {A : Subgroup G} (h : ∀ x ∈ A, g * x * g⁻¹ ∈ A) :
-    g ∈ Subgroup.normalizer (A : Set G) := by
-  have hle : A.map (MulAut.conj g).toMonoidHom ≤ A := by
-    rintro _ ⟨x, hx, rfl⟩
-    exact h x hx
-  rw [Subgroup.mem_normalizer_iff_map_conj_eq]
-  exact Subgroup.eq_of_le_of_card_ge hle
-    (by rw [Subgroup.card_map_of_injective (MulAut.conj g).injective])
+    g ∈ Subgroup.normalizer (A : Set G) :=
+  Subgroup.mem_normalizer_fintype h
 
 /-! ### Coprimality -/
 

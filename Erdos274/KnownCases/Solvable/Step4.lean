@@ -133,11 +133,8 @@ theorem index_ne_two [Finite G] [Group.IsSolvable G] (C : Group.ExactCovering G 
       Fintype.card_pos_iff.mpr (C.fiberIndex_nonempty H x)
     have hc1 : Fintype.card (C.FiberIndex H x) = 1 := by omega
     obtain ⟨j₀, hj₀⟩ := Fintype.card_eq_one_iff.mp hc1
-    have hs := fiberCover_sum_inv_index C H x
-    rw [Fintype.sum_eq_single j₀ fun j hj ↦ absurd (hj₀ j) hj] at hs
     have h1 : ((C.fiberCover H x).parts j₀).index = 1 := by
-      have : (((C.fiberPart (x := x) H j₀).index : ℕ) : ℚ) = 1 := inv_eq_one.mp hs
-      exact_mod_cast this
+      rw [(C.fiberCover H x).part_eq_top_of_card_eq_one hc1 j₀, Subgroup.index_top]
     have hj : (C.parts j₀.1).index = (C.parts i).index := by
       rw [hidx j₀, h1, h2]
     exact hnoti j₀ (hinj hj)

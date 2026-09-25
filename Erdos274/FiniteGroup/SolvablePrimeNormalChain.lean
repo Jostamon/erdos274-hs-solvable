@@ -42,13 +42,8 @@ private theorem primeNormalChain_top_of_isSolvable_aux :
         exact IsSimpleGroup.prime_card
       -- Recurse into `L`.
       have hLlt : Nat.card L < n := by
-        have hmul : Nat.card L * L.index = Nat.card G := L.card_mul_index
-        have h2 := hprime.two_le
-        have h0 : 0 < Nat.card L := Nat.card_pos
-        calc Nat.card L < Nat.card L * 2 := by omega
-          _ ≤ Nat.card L * L.index := Nat.mul_le_mul_left _ h2
-          _ = Nat.card G := hmul
-          _ = n := hn
+        exact ((Subgroup.card_lt_of_lt (lt_top_iff_ne_top.mpr hLne)).trans_eq
+          Subgroup.card_top).trans_eq hn
       have tail : Subgroup.PrimeNormalChain L :=
         (ih (Nat.card L) hLlt L rfl).map_subtype L
       exact Subgroup.PrimeNormalChain.step le_top (hLnormal.subgroupOf ⊤)

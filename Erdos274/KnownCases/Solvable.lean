@@ -5,6 +5,7 @@ Authors: Murali Menon
 -/
 import Erdos274.KnownCases.Solvable.Step4
 import Erdos274.ExactCovering.Cardinality
+import Erdos274.ExactCovering.Counting.Volume
 import Erdos274.ExactCovering.Quotient
 
 /-!
@@ -67,20 +68,15 @@ theorem herzog_schonheim.variants.solvable {G : Type*} [Group G]
   exact P.exists_equal_index_of_finiteQuotientCover
     (Step4.herzog_schonheim_of_solvable (G ⧸ P.commonCore) ι P.finiteQuotientCover hι)
 
-set_option linter.unusedVariables false in
 /-- **The Herzog–Schönheim conjecture for solvable groups**, cardinality form
 (the right-hand side of upstream `erdos_274`, for solvable `G`).  `G` may be
 infinite.  `hG` is kept, unused, to match upstream. -/
-@[nolint unusedArguments]
 theorem erdos_274.variants.solvable {G : Type*} [Group G]
     [Group.IsSolvable G] (hG : 1 < ENat.card G) {ι : Type*} [Fintype ι]
     (P : Group.ExactCovering G ι) (hι : 1 < Fintype.card ι) :
     ∃ i j, i ≠ j ∧ #(P.parts i) = #(P.parts j) := by
-  have : Finite (G ⧸ P.commonCore) := P.finite_commonCore_quotient
-  obtain ⟨i, j, hij, h⟩ :=
-    Step4.herzog_schonheim_of_solvable (G ⧸ P.commonCore) ι P.finiteQuotientCover hι
-  exact ⟨i, j, hij, finiteQuotientCover_cardinalMk_eq_imp P i j
-    ((subgroup_cardinalMk_eq_iff_index_eq _ _).mpr h)⟩
+  obtain ⟨i, j, hij, h⟩ := herzog_schonheim.variants.solvable hG hι P
+  exact ⟨i, j, hij, exactCovering_cardinalMk_eq_of_index_eq P i j h⟩
 
 /-- The cardinality form in the shape of upstream `erdos_274.variants.abelian`,
 with `[CommGroup G]` replaced by `[Group G] [Group.IsSolvable G]`. -/

@@ -255,21 +255,8 @@ theorem card_primesBelow_le (M : ℕ) (hM : 1 ≤ M) :
 
 /-- A product of factors `q/(q−1) ≥ 1` over a larger set is larger. -/
 theorem mertensProd_le_of_subset_two_le {Q Q' : Finset ℕ} (hQ' : ∀ q ∈ Q', 2 ≤ q)
-    (hsub : Q ⊆ Q') : mertensProd Q ≤ mertensProd Q' := by
-  have hf : ∀ q ∈ Q', 1 ≤ (q : ℚ) / (q - 1) := by
-    intro q hq
-    have h2 : (2 : ℚ) ≤ q := by exact_mod_cast hQ' q hq
-    rw [le_div_iff₀ (by linarith)]
-    linarith
-  unfold mertensProd
-  rw [← Finset.prod_sdiff hsub]
-  have h1 : 1 ≤ ∏ q ∈ Q' \ Q, (q : ℚ) / (q - 1) :=
-    Finset.prod_induction _ (fun x : ℚ ↦ 1 ≤ x)
-      (fun a b ha hb ↦ one_le_mul_of_one_le_of_one_le ha hb) le_rfl
-      fun q hq ↦ hf q (Finset.mem_sdiff.mp hq).1
-  have h0 : 0 ≤ ∏ q ∈ Q, (q : ℚ) / (q - 1) :=
-    Finset.prod_nonneg fun q hq ↦ (zero_le_one.trans (hf q (hsub hq)))
-  nlinarith
+    (hsub : Q ⊆ Q') : mertensProd Q ≤ mertensProd Q' :=
+  Erdos274.mertensProd_le_of_subset_two_le hQ' hsub
 
 /-- The pair factor: `f(m)³ ≤ (12m+5)/(12m−7)` at `m = M + 1`, cleared of
 denominators.  Cleared, the difference of the two sides is a polynomial in

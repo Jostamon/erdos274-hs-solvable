@@ -58,12 +58,7 @@ variable {ι κ : Type*} [Fintype ι] {r : ι → ℝ≥0∞}
 
 theorem W_biUnion_le {α : Type*} (r : ι → ℝ≥0∞) (s : Finset α) (S : α → Set (ι → ℕ)) :
     W r (⋃ x ∈ s, S x) ≤ ∑ x ∈ s, W r (S x) := by
-  classical
-  induction s using Finset.induction_on with
-  | empty => simp
-  | insert x s hx ih =>
-    rw [Finset.set_biUnion_insert, Finset.sum_insert hx]
-    exact (W_union_le _ _).trans (add_le_add le_rfl ih)
+  simpa only [W, ← tsum_subtype] using ENNReal.tsum_biUnion_le (w r) s S
 
 /-- Distinct points of a family lying in `S` carry at most `W(S)`. -/
 theorem sum_le_W_of_mapsTo (J : Finset κ) (g : κ → ι → ℕ) (hinj : Set.InjOn g J)

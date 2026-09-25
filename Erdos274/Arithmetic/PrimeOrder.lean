@@ -238,9 +238,7 @@ theorem sOrd_le_rangeBound_self {p : ℕ} (hp : p.Prime) : sOrd p ≤ rangeBound
     exact hge
 
 theorem primesBelow_mono {m n : ℕ} (h : m ≤ n) : m.primesBelow ⊆ n.primesBelow := by
-  intro q hq
-  rw [Nat.mem_primesBelow] at hq ⊢
-  exact ⟨lt_of_lt_of_le hq.1 h, hq.2⟩
+  exact Nat.primesBelow_mono h
 
 /-- `Π_p` is monotone in `p`: more primes, more factors, each at least `1`. -/
 theorem piBelow_mono {m n : ℕ} (h : m ≤ n) : piBelow m ≤ piBelow n :=
