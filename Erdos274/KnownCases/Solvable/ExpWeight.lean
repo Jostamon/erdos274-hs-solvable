@@ -172,4 +172,47 @@ theorem W_univ_fin {n : ℕ} (r : Fin n → ℝ≥0∞) : W r univ = ∏ i, (1 -
 
 end ExpWeight
 
+/-! ### Weight bookkeeping used by the seven-closure argument -/
+
+namespace SevenClosure
+
+open Set ExpWeight
+open scoped ENNReal
+
+variable {ι κ : Type*} [Fintype ι] {r : ι → ℝ≥0∞}
+
+theorem W_biUnion_le {α : Type*} (r : ι → ℝ≥0∞) (s : Finset α)
+    (S : α → Set (ι → ℕ)) :
+    W r (⋃ x ∈ s, S x) ≤ ∑ x ∈ s, W r (S x) := by
+  simpa only [W, ← tsum_subtype] using ENNReal.tsum_biUnion_le (w r) s S
+
+/-- Distinct points of a family lying in `S` carry at most `W(S)`. -/
+theorem sum_le_W_of_mapsTo (J : Finset κ) (g : κ → ι → ℕ)
+    (hinj : Set.InjOn g J) {S : Set (ι → ℕ)} (hS : ∀ p ∈ J, g p ∈ S) :
+    ∑ p ∈ J, w r (g p) ≤ W r S := by
+  classical
+  rw [← Finset.sum_image hinj, ← W_finset]
+  refine W_mono fun z hz ↦ ?_
+  obtain ⟨p, hp, rfl⟩ := Finset.mem_image.1 (Finset.mem_coe.1 hz)
+  exact hS p hp
+
+theorem W_image_add (s : Finset (ι → ℕ)) (e : ι → ℕ) :
+    W r ((s.image (· + e) : Finset (ι → ℕ)) : Set (ι → ℕ)) =
+      w r e * ∑ h ∈ s, w r h := by
+  rw [W_finset, Finset.sum_image fun x _ y _ hxy ↦ add_right_cancel hxy, Finset.mul_sum]
+  exact Finset.sum_congr rfl fun h _ ↦ by rw [w_add, mul_comm]
+
+theorem w_ne_top (hr : ∀ k, r k ≠ ⊤) (z : ι → ℕ) : w r z ≠ ⊤ :=
+  ENNReal.prod_ne_top fun k _ ↦ ENNReal.pow_ne_top (hr k)
+
+theorem w_ne_zero (hr0 : ∀ k, r k ≠ 0) (z : ι → ℕ) : w r z ≠ 0 :=
+  Finset.prod_ne_zero_iff.2 fun k _ ↦ pow_ne_zero _ (hr0 k)
+
+theorem one_le_W_univ : 1 ≤ W r univ := by
+  have hzero : w r 0 = 1 := by simp [w]
+  rw [← hzero, ← W_singleton]
+  exact W_mono (subset_univ _)
+
+end SevenClosure
+
 end Erdos274

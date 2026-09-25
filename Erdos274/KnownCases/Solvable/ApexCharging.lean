@@ -134,6 +134,27 @@ theorem apex_eq_mem_defect {H₀ : Set (ι → ℕ)} (hH₀ : IsAntichain (· �
 
 /-! ### Apexes are unusable -/
 
+omit [DecidableEq ι] in
+/-- An antichain head below `h`, together with a pointwise lower bound on its
+increment, forces equality in both summands. -/
+theorem eq_of_up_antichain_add_eq {H₀ : Set (ι → ℕ)}
+    (hH₀ : IsAntichain (· ≤ ·) H₀) {h hd l e : ι → ℕ}
+    (hh : h ∈ H₀) (hhd : hd ∈ up H₀) (hle : e ≤ l) (hpt : hd + l = h + e) :
+    hd = h ∧ l = e := by
+  have hle' : hd ≤ h := fun m ↦ by
+    apply Nat.le_of_add_le_add_right
+    calc
+      hd m + e m ≤ hd m + l m := Nat.add_le_add_left (hle m) _
+      _ = h m + e m := congrFun hpt m
+  obtain ⟨g, hg, hgd⟩ := hhd
+  have hgh : g = h := by
+    by_contra hne
+    exact hH₀ hg hh hne (hgd.trans hle')
+  subst hgh
+  have hdh : hd = g := le_antisymm hle' hgd
+  subst hdh
+  exact ⟨rfl, add_left_cancel hpt⟩
+
 /-- **An exact-7 apex is used only by the exact part at its head, or lies in
 `𝒟`.**  If `hd + l = h + eⱼ` with `hd ∈ U`, `h` minimal and `l ≥ eⱼ` or
 `l ≥ eᵢ`, then either `hd = h` and `l = eⱼ`, or the point is in `𝒟`. -/
@@ -144,20 +165,7 @@ theorem apexJ_of_part {H₀ : Set (ι → ℕ)} (hH₀ : IsAntichain (· ≤ ·)
       h + Pi.single j 1 ∈ defect (up H₀) (Pi.single i t) (Pi.single j 1) := by
   rcases hl with hl | hl
   · left
-    have hle : hd ≤ h := fun m ↦ by
-      change hd m ≤ h m
-      have h1 := congrFun hpt m
-      have h2 : (Pi.single j 1 : ι → ℕ) m ≤ l m := hl m
-      simp only [Pi.add_apply] at h1
-      omega
-    obtain ⟨g, hg, hgd⟩ := hhd
-    have hgh : g = h := by
-      by_contra hne
-      exact hH₀ hg hh hne (hgd.trans hle)
-    subst hgh
-    have hdh : hd = g := le_antisymm hle hgd
-    subst hdh
-    exact ⟨rfl, add_left_cancel hpt⟩
+    exact eq_of_up_antichain_add_eq hH₀ hh hhd hl hpt
   · right
     exact apexJ_mem_defect hH₀ hij ht hh (hpt ▸ add_mem_shift_up hhd hl)
 
@@ -172,20 +180,7 @@ theorem apexI_of_part {H₀ : Set (ι → ℕ)} (hH₀ : IsAntichain (· ≤ ·)
   · right
     exact apexI_mem_defect hH₀ hij ht hh (hpt ▸ add_mem_shift_up hhd hl)
   · left
-    have hle : hd ≤ h := fun m ↦ by
-      change hd m ≤ h m
-      have h1 := congrFun hpt m
-      have h2 : (Pi.single i t : ι → ℕ) m ≤ l m := hl m
-      simp only [Pi.add_apply] at h1
-      omega
-    obtain ⟨g, hg, hgd⟩ := hhd
-    have hgh : g = h := by
-      by_contra hne
-      exact hH₀ hg hh hne (hgd.trans hle)
-    subst hgh
-    have hdh : hd = g := le_antisymm hle hgd
-    subst hdh
-    exact ⟨rfl, add_left_cancel hpt⟩
+    exact eq_of_up_antichain_add_eq hH₀ hh hhd hl hpt
 
 /-! ### Blocks below an apex -/
 

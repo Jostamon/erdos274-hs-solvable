@@ -3,6 +3,7 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
+import Erdos274.Counting.FiniteFibers
 import Erdos274.Arithmetic.DivisorMass
 import Erdos274.FiniteGroup.PrimeNormalChain
 import Erdos274.FiniteGroup.PrimaryPart
@@ -293,16 +294,7 @@ end Step
 /-- Counting a finite set through the fibres of a labelling. -/
 lemma ncard_eq_sum_ncard_label {γ : Type*} [Fintype γ] [Finite Ω]
     (S : Set Ω) (f : Ω → γ) : S.ncard = ∑ c : γ, (S ∩ {x | f x = c}).ncard := by
-  classical
-  have : Fintype Ω := Fintype.ofFinite _
-  rw [Set.ncard_eq_toFinset_card' S,
-    Finset.card_eq_sum_card_fiberwise (f := f) (t := Finset.univ)
-      (fun x _ ↦ Finset.mem_univ _)]
-  refine Finset.sum_congr rfl fun c _ ↦ ?_
-  rw [Set.ncard_eq_toFinset_card']
-  congr 1
-  ext x
-  simp
+  exact ncard_eq_sum_set_fibers S f
 
 /-- Base case of the orbit-union induction.  Kept separate so Lean does not
 elaborate this branch under the dependent induction motive. -/

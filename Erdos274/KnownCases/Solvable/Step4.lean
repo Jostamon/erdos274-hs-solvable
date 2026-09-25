@@ -358,12 +358,9 @@ theorem false_of_minimal [Finite G] [Group.IsSolvable G] (C : Group.ExactCoverin
       have hj : j ∈ nonUniv C F := Finset.mem_filter.mpr ⟨Finset.mem_univ _, h⟩
       rw [hempty] at hj
       exact Finset.notMem_empty _ hj
-    have hker : ∀ i, (QuotientGroup.mk' F).ker ≤ C.parts i := fun i ↦ by
-      rw [QuotientGroup.ker_mk']
-      exact hall i
-    set C' := C.map (QuotientGroup.mk' F) (QuotientGroup.mk'_surjective F) hker
+    set C' := C.quotient F hall
     have hidx : ∀ i, (C'.parts i).index = (C.parts i).index := fun i ↦
-      Subgroup.index_map_eq _ (QuotientGroup.mk'_surjective F) (hker i)
+      C.quotient_part_index F hall i
     have hFbot : F ≠ ⊥ := fun h ↦ hQne (eq_bot_iff.mpr (h ▸ le_sup_right))
     have hcard : Nat.card (G ⧸ F) < Nat.card G := by
       have h1 := Subgroup.card_eq_card_quotient_mul_card_subgroup F

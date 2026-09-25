@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
 import Mathlib.Algebra.Group.Pointwise.Set.Card
+import Erdos274.Counting.FiniteFibers
 import Mathlib.Data.Nat.Factorization.Basic
 import Mathlib.GroupTheory.Perm.Cycle.Type
 import Mathlib.GroupTheory.QuotientGroup.Basic
@@ -86,17 +87,8 @@ lemma ncard_smul_coset (x : G) (H : Subgroup G) :
 /-- Counting a set fiberwise over the quotient `G ⧸ K`. -/
 lemma ncard_eq_sum_fiber_ncard (S : Set G) (K : Subgroup G) [Fintype (G ⧸ K)] :
     S.ncard = ∑ c : G ⧸ K, (S ∩ QuotientGroup.mk ⁻¹' {c}).ncard := by
-  classical
-  have : Fintype G := Fintype.ofFinite _
-  rw [Set.ncard_eq_toFinset_card' S,
-    Finset.card_eq_sum_card_fiberwise
-      (f := fun x ↦ (QuotientGroup.mk x : G ⧸ K)) (t := Finset.univ)
-      (fun x _ ↦ Finset.mem_univ _)]
-  refine Finset.sum_congr rfl fun c _ ↦ ?_
-  rw [Set.ncard_eq_toFinset_card']
-  congr 1
-  ext x
-  simp
+  simpa [Set.preimage] using
+    (ncard_eq_sum_set_fibers S (QuotientGroup.mk : G → G ⧸ K))
 
 section CosetHelpers
 

@@ -5,7 +5,8 @@ Authors: Murali Menon
 -/
 import Erdos274.KnownCases.Solvable.SevenInstance
 import Erdos274.KnownCases.Solvable.DivisorWeight
-import Erdos274.KnownCases.Solvable.QuotientShadow
+import Erdos274.ExactCovering.Cells
+import Erdos274.KnownCases.Solvable.QuotientShadow.Basic
 import Mathlib.Tactic.NormNum.Prime
 
 /-!
@@ -116,46 +117,6 @@ omit [Fintype G] in
 /-- A part is universal exactly when its local index is `1`. -/
 theorem le_of_loc_eq_one {j : κ} (h : loc C F j = 1) : F ≤ C.parts j :=
   Subgroup.relIndex_eq_one.mp h
-
-/-- **Fibre count.**  If every part meeting `Ω` lies in `T`, the preimage of
-`Ω` is covered by the cells of `T`. -/
-theorem card_mul_ncard_le_of_meet (Ω : Set (G ⧸ F)) (T : Finset κ)
-    (hT : ∀ j, ∀ δ ∈ Ω, δ ∈ shadow C F j → j ∈ T) :
-    Nat.card F * Ω.ncard ≤ ∑ j ∈ T, Nat.card (C.parts j) := by
-  classical
-  rw [← card_ptsOf]
-  have hsub : (QuotientGroup.mk ⁻¹' Ω : Set G) ⊆ (ptsOf C T : Set G) := by
-    intro z hz
-    obtain ⟨k, hk⟩ := C.exists_mem z
-    have hks : ((z : G ⧸ F)) ∈ shadow C F k := by
-      rw [mem_shadow_iff]
-      exact ⟨(C.reps k)⁻¹ * z, (mem_leftCoset_iff _).mp hk, by simp⟩
-    rw [Finset.mem_coe]
-    exact Finset.mem_biUnion.mpr ⟨k, hT k _ hz hks, (MassForm.mem_cell C).mpr hk⟩
-  have h1 := Set.ncard_le_ncard hsub
-  rw [Set.ncard_coe_finset] at h1
-  have h2 := QuotientGroup.card_preimage_mk F Ω
-  rw [Nat.card_coe_set_eq, Nat.card_coe_set_eq] at h2
-  rw [← h2]
-  exact h1
-
-/-- A part sharing an `F`-coset with a non-universal part is non-universal:
-a universal part would contain the whole coset. -/
-theorem not_le_of_meet {j k : κ} (hj : ¬ F ≤ C.parts j) {δ : G ⧸ F}
-    (hδj : δ ∈ shadow C F j) (hδk : δ ∈ shadow C F k) : ¬ F ≤ C.parts k := by
-  intro hle
-  obtain ⟨h, hh, hδ⟩ := (mem_shadow_iff C F).mp hδj
-  obtain ⟨h', hh', hδ'⟩ := (mem_shadow_iff C F).mp hδk
-  have hq : (C.reps k * h')⁻¹ * (C.reps j * h) ∈ F := QuotientGroup.eq.mp (hδ'.trans hδ.symm)
-  have hx : C.reps j * h ∈ C.reps k • (C.parts k : Set G) := by
-    have := NormaliserSlice.mul_mem_cell C
-      (show C.reps k * h' ∈ C.reps k • (C.parts k : Set G) from Set.smul_mem_smul_set hh')
-      (hle hq)
-    have e : C.reps k * h' * ((C.reps k * h')⁻¹ * (C.reps j * h)) = C.reps j * h := by group
-    rwa [e] at this
-  have hjc : C.reps j * h ∈ C.reps j • (C.parts j : Set G) := Set.smul_mem_smul_set hh
-  have hjk := NormaliserSlice.eq_of_mem_cell C hjc hx
-  exact hj (by rw [hjk]; exact hle)
 
 omit [Fintype G] in
 /-- **The fibre count as an index sum**: `|Ω|/[G:F] ≤ ∑_{j∈T} 1/[G:Hⱼ]`. -/

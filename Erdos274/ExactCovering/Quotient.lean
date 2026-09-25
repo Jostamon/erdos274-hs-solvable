@@ -215,18 +215,31 @@ def quotient (N : Subgroup G) [N.Normal] (hfull : ∀ j, N ≤ P.parts j) :
     rw [QuotientGroup.ker_mk']
     exact hfull j
 
+/-- Surjective maps preserve the index of a part when the kernel is contained
+in that part. -/
+theorem map_part_index {Q : Type*} [Group Q] (f : G →* Q)
+    (hf : Function.Surjective f) (hker : ∀ j, f.ker ≤ P.parts j) (i : ι) :
+    ((P.map f hf hker).parts i).index = (P.parts i).index := by
+  apply Subgroup.index_map_eq
+  · exact hf
+  · exact hker i
+
+/-- The index of a part is unchanged on quotienting by a normal subgroup
+contained in every part. -/
+theorem quotient_part_index (N : Subgroup G) [N.Normal]
+    (hfull : ∀ j, N ≤ P.parts j) (i : ι) :
+    ((P.quotient N hfull).parts i).index = (P.parts i).index := by
+  exact P.map_part_index (QuotientGroup.mk' N) (QuotientGroup.mk'_surjective N)
+    (fun j ↦ by rw [QuotientGroup.ker_mk']; exact hfull j) i
+
 /-- The exact covering descended to the finite quotient by the common normal core. -/
 def finiteQuotientCover : Group.ExactCovering (G ⧸ P.commonCore) ι :=
-  P.map (QuotientGroup.mk' P.commonCore)
-    (QuotientGroup.mk'_surjective P.commonCore) fun i ↦ by
-      simpa using P.commonCore_le_part i
+  P.quotient P.commonCore P.commonCore_le_part
 
 /-- Descent to the common-core quotient preserves every subgroup index exactly. -/
 theorem finiteQuotientCover_part_index (i : ι) :
     (P.finiteQuotientCover.parts i).index = (P.parts i).index := by
-  apply Subgroup.index_map_eq
-  · exact QuotientGroup.mk'_surjective P.commonCore
-  · simpa using P.commonCore_le_part i
+  exact P.quotient_part_index P.commonCore P.commonCore_le_part i
 
 /-- If the canonical finite quotient cover has repeated indices, so does the original cover. -/
 theorem exists_equal_index_of_finiteQuotientCover
