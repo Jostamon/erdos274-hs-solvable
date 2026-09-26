@@ -51,6 +51,28 @@ abbrev up (H : Set (ι → ℕ)) : Set (ι → ℕ) := upperClosure H
 theorem mem_up_of_mem {H : Set (ι → ℕ)} {h : ι → ℕ} (hh : h ∈ H) : h ∈ up H :=
   subset_upperClosure hh
 
+/-- The up-set analogue of the finite union bound for a family of principal
+upper sets. -/
+theorem W_up_le [Fintype ι] {r : ι → ℝ≥0∞} (H₀ A : Finset (ι → ℕ)) :
+    W r (up (H₀ : Set (ι → ℕ))) ≤ W r (up (A : Set (ι → ℕ))) +
+      W r univ * ∑ h ∈ H₀ \ A, w r h := by
+  classical
+  have hsub : up (H₀ : Set (ι → ℕ)) ⊆ up (A : Set (ι → ℕ)) ∪ ⋃ h ∈ H₀ \ A, Ici h := by
+    rintro z ⟨g, hg, hgz⟩
+    by_cases hgA : g ∈ A
+    · exact Or.inl ⟨g, hgA, hgz⟩
+    · exact Or.inr (mem_iUnion₂.2 ⟨g, Finset.mem_sdiff.2 ⟨hg, hgA⟩, hgz⟩)
+  calc W r (up (H₀ : Set (ι → ℕ)))
+      ≤ W r (up (A : Set (ι → ℕ))) + W r (⋃ h ∈ H₀ \ A, Ici h) :=
+        (W_mono hsub).trans (W_union_le _ _)
+    _ ≤ W r (up (A : Set (ι → ℕ))) + ∑ h ∈ H₀ \ A, W r (Ici h) := by
+        gcongr
+        exact ExpWeight.W_biUnion_le r _ _
+    _ = W r (up (A : Set (ι → ℕ))) + W r univ * ∑ h ∈ H₀ \ A, w r h := by
+        rw [Finset.mul_sum]
+        simp only [W_Ici, mul_comm]
+
+
 /-- Sol's defect set `𝒟 = ((U + e) ∩ (U + f)) ∖ (U + e + f)`. -/
 def defect (U : Set (ι → ℕ)) (e f : ι → ℕ) : Set (ι → ℕ) :=
   (shift e U ∩ shift f U) \ shift (e + f) U

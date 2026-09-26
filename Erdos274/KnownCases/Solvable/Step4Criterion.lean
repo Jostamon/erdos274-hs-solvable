@@ -69,6 +69,10 @@ theorem step4Crit_of_bounds {p : ℕ} (hp : 2 ≤ p) {C S : ℚ} (hC : piBelow p
 
 theorem step4Crit_of_le_thirtyone {p : ℕ} (hp : p.Prime) (h5 : 5 ≤ p) (h31 : p ≤ 31)
     (h7 : p ≠ 7) : step4Crit p := by
+  /- Prime endpoints and their certificates:
+     5 → `piBelow_five`, `sOrd_five`; 11, 13, 17, 19, 23, 29, 31 →
+     the correspondingly named `piBelow_*` and `sOrd_*` bounds below.
+     Every other interval case is composite; 7 is excluded by `h7`. -/
   interval_cases p
   · exact step4Crit_of_bounds (by norm_num) piBelow_five.le sOrd_five.le (by norm_num)
   · norm_num at hp

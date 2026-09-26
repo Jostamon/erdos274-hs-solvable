@@ -16,7 +16,6 @@ import Mathlib.GroupTheory.Coset.Card
 import Mathlib.GroupTheory.CosetCover
 import Mathlib.GroupTheory.GroupAction.Blocks
 import Mathlib.GroupTheory.GroupAction.Primitive
-import Mathlib.GroupTheory.GroupAction.Quotient
 import Mathlib.GroupTheory.PGroup
 import Mathlib.GroupTheory.QuotientGroup.Basic
 import Mathlib.SetTheory.Cardinal.Arithmetic

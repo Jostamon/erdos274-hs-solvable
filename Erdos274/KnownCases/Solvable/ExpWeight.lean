@@ -170,14 +170,7 @@ theorem W_univ (r : ι → ℝ≥0∞) : W r univ = ∏ i, (1 - r i)⁻¹ := by
 
 theorem W_univ_fin {n : ℕ} (r : Fin n → ℝ≥0∞) : W r univ = ∏ i, (1 - r i)⁻¹ := W_univ r
 
-end ExpWeight
-
-/-! ### Weight bookkeeping used by the seven-closure argument -/
-
-namespace SevenClosure
-
-open Set ExpWeight
-open scoped ENNReal
+/-! ### Generic weight bookkeeping -/
 
 variable {ι κ : Type*} [Fintype ι] {r : ι → ℝ≥0∞}
 
@@ -186,7 +179,6 @@ theorem W_biUnion_le {α : Type*} (r : ι → ℝ≥0∞) (s : Finset α)
     W r (⋃ x ∈ s, S x) ≤ ∑ x ∈ s, W r (S x) := by
   simpa only [W, ← tsum_subtype] using ENNReal.tsum_biUnion_le (w r) s S
 
-/-- Distinct points of a family lying in `S` carry at most `W(S)`. -/
 theorem sum_le_W_of_mapsTo (J : Finset κ) (g : κ → ι → ℕ)
     (hinj : Set.InjOn g J) {S : Set (ι → ℕ)} (hS : ∀ p ∈ J, g p ∈ S) :
     ∑ p ∈ J, w r (g p) ≤ W r S := by
@@ -196,10 +188,34 @@ theorem sum_le_W_of_mapsTo (J : Finset κ) (g : κ → ι → ℕ)
   obtain ⟨p, hp, rfl⟩ := Finset.mem_image.1 (Finset.mem_coe.1 hz)
   exact hS p hp
 
+/-- The weights of distinct points in a finite family, together with one new
+point, are bounded by the weight of any set containing them. -/
+theorem sum_add_weight_le_W_of_injOn {κ : Type*}
+    (J : Finset κ) (f : κ → ι → ℕ) (hinj : Set.InjOn f J)
+    (x : ι → ℕ) (S : Set (ι → ℕ)) (hx : x ∈ S)
+    (hxnot : ∀ j ∈ J, x ≠ f j) (hS : ∀ j ∈ J, f j ∈ S) :
+    (∑ j ∈ J, w r (f j)) + w r x ≤ W r S := by
+  classical
+  let T := J.image f
+  have hxT : x ∉ T := by
+    intro h
+    obtain ⟨j, hj, heq⟩ := Finset.mem_image.mp h
+    exact hxnot j hj heq.symm
+  calc (∑ j ∈ J, w r (f j)) + w r x
+      = W r ((insert x T : Finset (ι → ℕ)) : Set (ι → ℕ)) := by
+          rw [W_finset, Finset.sum_insert hxT, Finset.sum_image hinj]
+          simp [add_comm]
+    _ ≤ W r S := W_mono fun z hz ↦ by
+          rw [Finset.coe_insert] at hz
+          rcases hz with rfl | hz
+          · exact hx
+          · obtain ⟨j, hj, rfl⟩ := Finset.mem_image.mp (Finset.mem_coe.mp hz)
+            exact hS j hj
+
 theorem W_image_add (s : Finset (ι → ℕ)) (e : ι → ℕ) :
     W r ((s.image (· + e) : Finset (ι → ℕ)) : Set (ι → ℕ)) =
       w r e * ∑ h ∈ s, w r h := by
-  rw [W_finset, Finset.sum_image fun x _ y _ hxy ↦ add_right_cancel hxy, Finset.mul_sum]
+  rw [W_finset, Finset.sum_image (fun x _ y _ hxy ↦ add_right_cancel hxy), Finset.mul_sum]
   exact Finset.sum_congr rfl fun h _ ↦ by rw [w_add, mul_comm]
 
 theorem w_ne_top (hr : ∀ k, r k ≠ ⊤) (z : ι → ℕ) : w r z ≠ ⊤ :=
@@ -213,6 +229,34 @@ theorem one_le_W_univ : 1 ≤ W r univ := by
   rw [← hzero, ← W_singleton]
   exact W_mono (subset_univ _)
 
+end ExpWeight
+
+/-! ### Compatibility wrappers for the original SevenClosure names -/
+
+namespace SevenClosure
+
+open Set ExpWeight
+open scoped ENNReal
+
+variable {ι κ : Type*} [Fintype ι] {r : ι → ℝ≥0∞}
+
+theorem W_biUnion_le {α : Type*} (r : ι → ℝ≥0∞) (s : Finset α)
+    (S : α → Set (ι → ℕ)) :
+    W r (⋃ x ∈ s, S x) ≤ ∑ x ∈ s, W r (S x) := ExpWeight.W_biUnion_le r s S
+
+theorem sum_le_W_of_mapsTo (J : Finset κ) (g : κ → ι → ℕ)
+    (hinj : Set.InjOn g J) {S : Set (ι → ℕ)} (hS : ∀ p ∈ J, g p ∈ S) :
+    ∑ p ∈ J, w r (g p) ≤ W r S := ExpWeight.sum_le_W_of_mapsTo J g hinj hS
+
+theorem W_image_add (s : Finset (ι → ℕ)) (e : ι → ℕ) :
+    W r ((s.image (· + e) : Finset (ι → ℕ)) : Set (ι → ℕ)) =
+      w r e * ∑ h ∈ s, w r h := ExpWeight.W_image_add s e
+
+theorem w_ne_top (hr : ∀ k, r k ≠ ⊤) (z : ι → ℕ) : w r z ≠ ⊤ := ExpWeight.w_ne_top hr z
+
+theorem w_ne_zero (hr0 : ∀ k, r k ≠ 0) (z : ι → ℕ) : w r z ≠ 0 := ExpWeight.w_ne_zero hr0 z
+
+theorem one_le_W_univ : 1 ≤ W r univ := ExpWeight.one_le_W_univ
 end SevenClosure
 
 end Erdos274

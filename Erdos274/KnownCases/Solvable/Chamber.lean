@@ -26,8 +26,8 @@ Consequences for `SevenJoin.false_of_covering`:
 * `seven_dvd_of_meet`, **the 7-chamber lemma**: a part sharing an `F`-coset
   with an exact-7 part has `7 ∣ ℓ`.
 * `two_dvd_of_meet`: a part sharing an `F`-coset with an exact-8 part has
-  `2 ∣ ℓ`.  The full exact-8 chamber (`2^{ord₇ 2} ∣ ℓ` or `7 ∣ ℓ`) needs the
-  `AGL(1,8)` structure and is not proved here.
+  `2 ∣ ℓ`.  The stronger exact-8 chamber (`2^{ord₇ 2} ∣ ℓ` or `7 ∣ ℓ`) is
+  proved using the `AGL(1,8)` structure in `ExactEight`.
 
 `false_of_covering_chamber` is `false_of_covering` with `hsep` and the
 exact-7 half of `hch` discharged.  What is left is (CB) and the exact-8
@@ -170,7 +170,8 @@ theorem seven_dvd_of_meet {j k : κ} {δ : G ⧸ F} (hj : loc C F j = 7)
     (hδj : δ ∈ shadow C F j) (hδk : δ ∈ shadow C F k) : 7 ∣ loc C F k :=
   dvd_of_meet_of_prime C F (by norm_num) hj hδj hδk
 
-/-- The easy half of the exact-8 chamber. -/
+/-- The parity consequence for a part meeting an exact-8 part.  The stronger
+exact-eight conclusion is proved in `ExactEight`. -/
 theorem two_dvd_of_meet {j k : κ} {δ : G ⧸ F} (hj : loc C F j = 2 ^ orderOf (2 : ZMod 7))
     (hδj : δ ∈ shadow C F j) (hδk : δ ∈ shadow C F k) : 2 ∣ loc C F k :=
   dvd_of_meet_of_prime_pow C F Nat.prime_two orderOf_two_ne_zero hj hδj hδk

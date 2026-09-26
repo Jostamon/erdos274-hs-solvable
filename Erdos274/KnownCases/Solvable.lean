@@ -33,8 +33,12 @@ the two ingredients directly, not that equivalence):
 
 A quotient of a solvable group is solvable, so the finite theorem
 `Step4.herzog_schonheim_of_solvable` (`DECISION_LOG` D100) applies to `G/N`
-whether or not `G` is finite.  Its proof is the directory
-`KnownCases/Solvable/`, which imports nothing outside the proof path.
+whether or not `G` is finite. Its proof is assembled from focused exact-cover,
+finite-group, arithmetic, and solvable-closure modules. The final import path
+uses the extracted cell, piece, quotient-shadow, and covering-weight
+foundations. It omits the earlier `NormaliserSlice`, `MassForm`, and full
+`QuotientShadow` implementations, which remain available to library and
+archive modules.
 
 The signature checks against the upstream statements, and
 `herzogSchonheim_iff_upstream`, are in `Reduction.Upstream`, so that the

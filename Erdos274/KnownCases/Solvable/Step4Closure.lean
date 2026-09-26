@@ -3,7 +3,7 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Solvable.SevenJoin
+import Erdos274.KnownCases.Solvable.CoveringWeights
 import Erdos274.Arithmetic.PrimeOrder
 
 /-!
@@ -33,7 +33,7 @@ namespace Erdos274
 
 namespace Step4Closure
 
-open Set QuotientShadow ExpWeight ApexCharging DivisorWeight SevenJoin SevenClosure PrimeOrder
+open Set QuotientShadow ExpWeight ApexCharging DivisorWeight SevenJoin PrimeOrder
 open scoped ENNReal NNReal
 
 universe u v

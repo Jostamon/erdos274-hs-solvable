@@ -54,23 +54,10 @@ open scoped ENNReal
 
 variable {ι κ : Type*} [Fintype ι] {r : ι → ℝ≥0∞}
 
-/-- **The Lemma O union bound**: `W(U) ≤ W(up A) + Π·∑_{h ∈ H₀∖A} w(h)`. -/
+/-- Compatibility wrapper for the generic up-set weight bound. -/
 theorem W_up_le (H₀ A : Finset (ι → ℕ)) :
-    W r (up (H₀ : Set (ι → ℕ))) ≤ W r (up (A : Set (ι → ℕ))) + W r univ * ∑ h ∈ H₀ \ A, w r h := by
-  classical
-  have hsub : up (H₀ : Set (ι → ℕ)) ⊆ up (A : Set (ι → ℕ)) ∪ ⋃ h ∈ H₀ \ A, Ici h := by
-    rintro z ⟨g, hg, hgz⟩
-    by_cases hgA : g ∈ A
-    · exact Or.inl ⟨g, hgA, hgz⟩
-    · exact Or.inr (mem_iUnion₂.2 ⟨g, Finset.mem_sdiff.2 ⟨hg, hgA⟩, hgz⟩)
-  calc W r (up (H₀ : Set (ι → ℕ)))
-      ≤ W r (up (A : Set (ι → ℕ))) + W r (⋃ h ∈ H₀ \ A, Ici h) :=
-        (W_mono hsub).trans (W_union_le _ _)
-    _ ≤ W r (up (A : Set (ι → ℕ))) + ∑ h ∈ H₀ \ A, W r (Ici h) := by
-        gcongr; exact W_biUnion_le r _ _
-    _ = W r (up (A : Set (ι → ℕ))) + W r univ * ∑ h ∈ H₀ \ A, w r h := by
-        rw [Finset.mul_sum]
-        simp only [W_Ici, mul_comm]
+    W r (up (H₀ : Set (ι → ℕ))) ≤ W r (up (A : Set (ι → ℕ))) + W r univ * ∑ h ∈ H₀ \ A, w r h :=
+  ApexCharging.W_up_le H₀ A
 
 /-! ### The criterion -/
 

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
 import Erdos274.KnownCases.Solvable.ApexCharging
-import Erdos274.KnownCases.Solvable.GeometricShadow
+import Erdos274.KnownCases.Solvable.GeometricShadow.UpSet
 import Mathlib.Data.Nat.Totient
 
 /-!
@@ -63,6 +63,14 @@ variable {q : ι → ℕ}
 
 theorem Smooth.of_dvd {n d : ℕ} (hn : Smooth q n) (hd : d ∣ n) : Smooth q d :=
   ⟨ne_zero_of_dvd_ne_zero hn.1 hd, fun p hp ↦ hn.2 p (Nat.primeFactors_mono hd hn.1 hp)⟩
+
+/-- Products of `q`-smooth positive integers remain `q`-smooth. -/
+theorem Smooth.mul {a b : ℕ} (ha : Smooth q a) (hb : Smooth q b) : Smooth q (a * b) := by
+  refine ⟨Nat.mul_ne_zero ha.1 hb.1, fun p hp ↦ ?_⟩
+  rw [Nat.primeFactors_mul ha.1 hb.1, Finset.mem_union] at hp
+  rcases hp with hp | hp
+  · exact ha.2 p hp
+  · exact hb.2 p hp
 
 theorem vec_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) : vec q (a * b) = vec q a + vec q b := by
   funext i

@@ -3,16 +3,19 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon, OpenAI
 -/
-import Erdos274.Spectrum.Basic
+import Erdos274.Statements
+import Erdos274.ExactCovering.Quotient
 import Mathlib.GroupTheory.Solvable
+import Mathlib.Algebra.Group.Subgroup.Finite
 
 /-!
 # Solvable HS: least-order endpoint and proper-coset subpartitions
 
 The important observation formalized here is that, in a least-order solvable
 counterexample, it is enough to find a proper subgroup which inherits an exact
-cover with pairwise distinct relative indices.  This is the endpoint that a
-global affine compression theorem should produce.
+cover with pairwise distinct relative indices.  The proof restricts the
+covering to a complementary coset and applies the proper-subpartition theorem
+to its active parts.
 
 No research axiom occurs in this file.
 -/
@@ -28,6 +31,34 @@ def AllFiniteSolvableGroupsBelowSatisfyHerzogSchonheim
     (n : ℕ) : Prop :=
   ∀ (Q : Type u) [Group Q] [Finite Q] [Group.IsSolvable Q],
     Nat.card Q < n → GroupSatisfiesHerzogSchonheim.{u, v} Q
+
+/-- Minimality rules out a nontrivial normal subgroup contained in every part:
+the covering would descend to a smaller solvable quotient with the same
+indices. -/
+theorem false_of_nontrivial_normal_subgroup_in_all_parts
+    {G : Type u} [Group G] [Finite G] [Group.IsSolvable G] {ι : Type v} [Fintype ι]
+    (C : Group.ExactCovering G ι) (hι : 1 < Fintype.card ι)
+    (hinj : Function.Injective fun i ↦ (C.parts i).index)
+    (hmin : AllFiniteSolvableGroupsBelowSatisfyHerzogSchonheim.{u, v} (Nat.card G))
+    (N : Subgroup G) [N.Normal] (hN : N ≠ ⊥) (hfull : ∀ i, N ≤ C.parts i) :
+  False := by
+  classical
+  have hNcard : 1 < Nat.card N := by
+    rw [Finite.one_lt_card_iff_nontrivial]
+    exact (Subgroup.nontrivial_iff_ne_bot N).mpr hN
+  have hqcard : Nat.card (G ⧸ N) < Nat.card G := by
+    have hcard := Subgroup.card_eq_card_quotient_mul_card_subgroup N
+    have hqpos : 0 < Nat.card (G ⧸ N) := Nat.card_pos
+    rw [hcard]
+    calc Nat.card (G ⧸ N) = Nat.card (G ⧸ N) * 1 := (Nat.mul_one _).symm
+      _ < Nat.card (G ⧸ N) * Nat.card N :=
+        Nat.mul_lt_mul_of_pos_left hNcard hqpos
+  let C' := C.quotient N hfull
+  obtain ⟨i, j, hij, hidx⟩ := hmin (G ⧸ N) hqcard ι C' hι
+  exact hij (hinj (by
+    have hi := C.quotient_part_index N hfull i
+    have hj := C.quotient_part_index N hfull j
+    simpa only [C'] using hi.symm.trans (hidx.trans hj)))
 
 /-- A formal endpoint for a successful global compression.
 
