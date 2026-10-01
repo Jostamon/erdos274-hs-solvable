@@ -14,30 +14,28 @@ import Mathlib.Algebra.Field.ZMod
 # (CB), the cyclotomic block lemma
 
 `SOLVABLE_HS_TRACK.md` §9.19 §3 (statement and paper proof due to OpenAI GPT-5.6
-Sol).  This file proves it by the shorter route of `DECISION_LOG` D98 §14,
-which needs neither primitive permutation groups (Robinson 7.2.6) nor `GL(a,q)`.
+Sol).  This file proves it by working with a maximal subgroup of the whole group,
+following `solvable-herzog-schonheim-review.md` §1; it needs neither primitive
+permutation groups (Robinson 7.2.6) nor `GL(a,q)`.
 
 > **(CB).**  Let `H` be a finite solvable group, `p` a prime, `K ◁ H` a
-> `p′`-subgroup and `Q ≤ H` a `p`-subgroup with `[K,Q] = K`.  If `W < K` is
-> `Q`-invariant, then some prime `q ∣ |K|` has `q^{ord_p q} ∣ [K : W]`.
+> `p′`-subgroup and `Q ≤ H` a `p`-subgroup with `[K,Q] = K` and `KQ = H`.  If
+> `Y < H` has `p ∤ [H : Y]`, then some prime `q ∣ |K|` has `q^{ord_p q} ∣ [H : Y]`.
 
 * `orderOf_le_of_fixedPoints`: if a `p`-group acts nontrivially by
   automorphisms on a group of order `q^c`, with `q ≠ p`, then `ord_p q ≤ c`.
   The fixed points form a subgroup of order `q^b` with `b < c`, and
   `q^c ≡ q^b (mod p)` (`IsPGroup.card_modEq_card_fixedPoints`).
-* `cyclotomic_block`, the core.  Take `M ⊇ W` maximal among the proper
-  `Q`-invariant subgroups of `K`, `N` the normal core of `M`, and `V` minimal
-  among the normal subgroups with `N < V ≤ K`.
+* `cyclotomic_block_index`.  A fixed point of `Q` on `H/Y` conjugates `Q` into
+  `Y`.  Take `M ⊇ Y` a maximal subgroup, `N` its normal core, and `V` minimal
+  among the normal subgroups with `N < V`.
   - `V/N` is minimal normal in the solvable group `H/N`, hence elementary
     abelian of exponent a prime `q` (`minimal_normal_is_elementary_abelian`).
-  - `V ⊄ M`, so `M ⊔ V = K` and `[K : M] = [V : V ⊓ M]`.
-  - `V ⊓ M` is normal in `V`, and `Q` acts on `A = V/(V ⊓ M)`, a `q`-group.
-  - The action is nontrivial: otherwise every `⁅k, x⁆` lies in `M`, so
-    `K = [K,Q] ≤ M`.
-* `cyclotomic_block_index`: the form the covering uses.  If `K ⊔ Q = H` and
-  `Y < H` has `p ∤ [H : Y]`, then `q^{ord_p q} ∣ [H : Y]` for some prime
-  `q ∣ |K|`.  A fixed point of `Q` on `H/Y` conjugates `Q` into `Y`, and then
-  `[H : Y] = [K : K ⊓ Y]`.
+  - `V ⊄ M`, so `M ⊔ V = H` and `[H : M] = [V : V ⊓ M]`, a power of `q`.
+  - `Q ≤ M` acts on `A = V/(V ⊓ M)` by conjugation, nontrivially: otherwise
+    every `⁅k, x⁆` lies in `M`, so `K = [K,Q] ≤ M` and `H = KQ ≤ M`.
+  - `q ∣ [H : M] ∣ [H : Q] = [K : K ⊓ Q]`, so `q ∣ |K|`; and `q ≠ p` because
+    `[H : M] ∣ [H : Y]`.
 -/
 
 namespace Erdos274
@@ -104,43 +102,72 @@ theorem conj_mem_of_mem_normalizer {X : Subgroup H} {x y : H}
     (hx : x ∈ Subgroup.normalizer (X : Set H)) (hy : y ∈ X) : x * y * x⁻¹ ∈ X :=
   (Subgroup.mem_normalizer_iff.mp hx y).mp hy
 
-/-- A subgroup normalising `M` normalises `M ⊔ V` when `V` is normal. -/
-theorem le_normalizer_sup {Q M V : Subgroup H} [V.Normal]
-    (hM : Q ≤ Subgroup.normalizer (M : Set H)) :
-    Q ≤ Subgroup.normalizer ((M ⊔ V : Subgroup H) : Set H) :=
-  (le_inf hM Subgroup.le_normalizer_of_normal).trans (M.inf_normalizer_le_normalizer_sup V)
-
 section Core
 
 variable [Finite H]
 
-/-- **(CB), the cyclotomic block lemma.** -/
-theorem cyclotomic_block [Group.IsSolvable H] {p : ℕ} [Fact p.Prime] {K Q W : Subgroup H}
-    [K.Normal] (hQ : IsPGroup p Q) (hK : ¬ p ∣ Nat.card K) (hKQ : ⁅K, Q⁆ = K)
-    (hWK : W ≤ K) (hWne : W ≠ K) (hWQ : Q ≤ Subgroup.normalizer (W : Set H)) :
-    ∃ q, q.Prime ∧ q ∣ Nat.card K ∧ q ^ orderOf (q : ZMod p) ∣ W.relIndex K := by
+/-- **A `p`-group conjugates into a subgroup of `p′`-index**: `Q` fixes a point
+`gY` of `H/Y`, since `p ∤ |H/Y|`, and then `g⁻¹Qg ≤ Y`. -/
+theorem exists_conj_mem_of_not_dvd {p : ℕ} [Fact p.Prime] {Q Y : Subgroup H}
+    (hQ : IsPGroup p Q) (hpY : ¬ p ∣ Y.index) : ∃ g : H, ∀ x ∈ Q, g⁻¹ * x * g ∈ Y := by
+  classical
+  obtain ⟨c, hc⟩ : (fixedPoints Q (H ⧸ Y)).Nonempty := by
+    by_contra hne
+    rw [Set.not_nonempty_iff_eq_empty] at hne
+    have hmod := hQ.card_modEq_card_fixedPoints (H ⧸ Y)
+    rw [hne] at hmod
+    simp only [Nat.card_of_isEmpty] at hmod
+    exact hpY ((Nat.modEq_zero_iff_dvd).mp hmod)
+  obtain ⟨g, rfl⟩ := QuotientGroup.mk_surjective c
+  refine ⟨g, fun x hx ↦ ?_⟩
+  have h := hc ⟨x⁻¹, Q.inv_mem hx⟩
+  rw [Subgroup.smul_def, MulAction.Quotient.smul_mk, smul_eq_mul, QuotientGroup.eq] at h
+  simpa [mul_assoc] using h
+
+/-- **(CB), the cyclotomic block lemma, in index form.**  If `K ⊔ Q = H` and
+`Y < H` has `p ∤ [H : Y]`, then some prime `q ∣ |K|` has `q^{ord_p q} ∣ [H : Y]`.
+The hypothesis `p ∤ |K|` is not needed by this proof; it is kept so that the
+statement matches the paper's Lemma 4.3. -/
+theorem cyclotomic_block_index [Group.IsSolvable H] {p : ℕ} [Fact p.Prime]
+    {K Q Y : Subgroup H} [K.Normal] (hQ : IsPGroup p Q) (_hK : ¬ p ∣ Nat.card K)
+    (hKQ : ⁅K, Q⁆ = K) (hsup : K ⊔ Q = ⊤) (hY : Y ≠ ⊤) (hpY : ¬ p ∣ Y.index) :
+    ∃ q, q.Prime ∧ q ∣ Nat.card K ∧ q ^ orderOf (q : ZMod p) ∣ Y.index := by
   classical
   have : Finite (Subgroup H) :=
     Finite.of_injective (fun S : Subgroup H ↦ (S : Set H)) SetLike.coe_injective
-  -- `M`: maximal among the proper `Q`-invariant subgroups of `K` above `W`
-  obtain ⟨M, hWM, hMmax⟩ := Finite.exists_le_maximal
-    (p := fun M : Subgroup H ↦ W ≤ M ∧ M ≤ K ∧ M ≠ K ∧ Q ≤ Subgroup.normalizer (M : Set H))
-    ⟨le_rfl, hWK, hWne, hWQ⟩
-  obtain ⟨-, hMK, hMne, hMQ⟩ := hMmax.prop
+  obtain ⟨g, hgx⟩ := exists_conj_mem_of_not_dvd hQ hpY
+  -- conjugate `Y` so that it contains `Q`
+  set Y₁ := Y.map ((MulAut.conj g : H ≃* H) : H →* H) with hY₁
+  have hidx : Y₁.index = Y.index := Subgroup.index_map_equiv Y (MulAut.conj g)
+  have hQY : Q ≤ Y₁ := by
+    intro x hx
+    refine ⟨g⁻¹ * x * g, hgx x hx, ?_⟩
+    change g * (g⁻¹ * x * g) * g⁻¹ = x
+    group
+  have hY₁ : Y₁ ≠ ⊤ := by
+    intro h
+    apply hY
+    rw [← Subgroup.index_eq_one, ← hidx, h, Subgroup.index_top]
+  -- `M`: a maximal subgroup above `Y₁`
+  obtain ⟨M, hYM, hMmax⟩ := Finite.exists_le_maximal
+    (p := fun M : Subgroup H ↦ Y₁ ≤ M ∧ M ≠ ⊤) ⟨le_rfl, hY₁⟩
+  obtain ⟨-, hMne⟩ := hMmax.prop
+  have hQM : Q ≤ M := hQY.trans hYM
+  have hMQ : Q ≤ Subgroup.normalizer (M : Set H) := hQM.trans Subgroup.le_normalizer
+  have hMY : M.index ∣ Y.index := hidx ▸ Subgroup.index_dvd_of_le hYM
   -- `N`: the normal core of `M`
   set N := M.normalCore with hNdef
   have hNM : N ≤ M := M.normalCore_le
-  -- `V`: minimal among the normal subgroups with `N < V ≤ K`
-  let S : Set (Subgroup H) := {V | V.Normal ∧ N < V ∧ V ≤ K}
-  have hKS : K ∈ S := ⟨inferInstance, lt_of_le_of_ne (hNM.trans hMK)
-    (fun h ↦ hMne (le_antisymm hMK (h ▸ hNM))), le_rfl⟩
-  obtain ⟨V, -, hVmin⟩ := (Set.toFinite S).isPWO.exists_le_minimal hKS
-  obtain ⟨hVn, hNV, hVK⟩ := hVmin.prop
+  -- `V`: minimal among the normal subgroups with `N < V`
+  let S : Set (Subgroup H) := {V | V.Normal ∧ N < V}
+  have hTS : ⊤ ∈ S := ⟨inferInstance, lt_of_le_of_ne le_top
+    (fun h ↦ hMne (top_le_iff.mp (h ▸ hNM)))⟩
+  obtain ⟨V, -, hVmin⟩ := (Set.toFinite S).isPWO.exists_le_minimal hTS
+  obtain ⟨hVn, hNV⟩ := hVmin.prop
   -- `V/N` is a minimal normal section, hence elementary abelian
   obtain ⟨q, hq, hexpV, hcommV⟩ := exists_prime_of_minimal_normal_section hVn hNV
-    fun V' hV'n hNV' hV'V ↦ le_antisymm hV'V (hVmin.2 ⟨hV'n, hNV', hV'V.trans hVK⟩ hV'V)
+    fun V' hV'n hNV' hV'V ↦ le_antisymm hV'V (hVmin.2 ⟨hV'n, hNV'⟩ hV'V)
   have : Fact q.Prime := ⟨hq⟩
-  -- consequences in `H`
   have hconjM : ∀ v ∈ V, ∀ d ∈ V ⊓ M, v * d * v⁻¹ ∈ M := by
     intro v hv d hd
     have hvd : ((v : H ⧸ N)) * d = d * v := hcommV v hv d hd.1
@@ -150,21 +177,18 @@ theorem cyclotomic_block [Group.IsSolvable H] {p : ℕ} [Fact p.Prime] {K Q W : 
     have e : v * d * v⁻¹ = d * ((v * d * v⁻¹)⁻¹ * d)⁻¹ := by group
     rw [e]
     exact M.mul_mem hd.2 (M.inv_mem (hNM hn))
-  -- `M ⊔ V = K`
+  -- `M ⊔ V = H`
   have hVM : ¬ V ≤ M := fun h ↦ hNV.not_ge (Subgroup.normal_le_normalCore.mpr h)
-  have hsup : M ⊔ V = K := by
+  have hsupMV : M ⊔ V = ⊤ := by
     by_contra hne
-    have hmem : W ≤ M ⊔ V ∧ M ⊔ V ≤ K ∧ M ⊔ V ≠ K ∧
-        Q ≤ Subgroup.normalizer ((M ⊔ V : Subgroup H) : Set H) :=
-      ⟨hWM.trans le_sup_left, sup_le hMK hVK, hne, le_normalizer_sup hMQ⟩
-    exact hVM ((hMmax.2 hmem le_sup_left).trans' le_sup_right)
-  -- the quotient `A = V/(V ⊓ M)`
+    exact hVM ((hMmax.2 ⟨hYM.trans le_sup_left, hne⟩ le_sup_left).trans' le_sup_right)
+  -- the quotient `A = V/(V ⊓ M)`, of order `[H : M]`
   set D' := (V ⊓ M).subgroupOf V with hD'
   have hD'n : D'.Normal := ⟨fun n hn g ↦ by
     rw [hD', Subgroup.mem_subgroupOf] at hn ⊢
     exact ⟨(g * n * g⁻¹).2, hconjM g g.2 n hn⟩⟩
-  have hcardA : Nat.card (V ⧸ D') = M.relIndex K := by
-    rw [← hsup, relIndex_sup_normal, inf_comm]
+  have hcardA : Nat.card (V ⧸ D') = M.index := by
+    rw [← Subgroup.relIndex_top_right, ← hsupMV, relIndex_sup_normal, inf_comm]
     rfl
   -- the action of `Q` on `A` by conjugation
   have hmapD : ∀ x : Q, D'.map (MulAut.conjNormal (x : H) : V ≃* V).toMonoidHom = D' := by
@@ -196,7 +220,7 @@ theorem cyclotomic_block [Group.IsSolvable H] {p : ℕ} [Fact p.Prime] {K Q W : 
   let _ : MulDistribMulAction Q (V ⧸ D') := MulDistribMulAction.compHom _ φ
   have hsmul : ∀ (x : Q) (v : V), x • ((v : V ⧸ D')) =
       ((MulAut.conjNormal (x : H) v : V) : V ⧸ D') := fun x v ↦ rfl
-  -- the action is nontrivial, because `[K,Q] = K`
+  -- the action is nontrivial, because `[K,Q] = K` and `KQ = H`
   have hnt : ∃ (x : Q) (a : V ⧸ D'), x • a ≠ a := by
     by_contra hall
     push Not at hall
@@ -211,8 +235,8 @@ theorem cyclotomic_block [Group.IsSolvable H] {p : ℕ} [Fact p.Prime] {K Q W : 
       exact h2
     have hle : ⁅K, Q⁆ ≤ M := by
       rw [Subgroup.commutator_le]
-      intro k hk x hx
-      have hk' : k ∈ ((M ⊔ V : Subgroup H) : Set H) := hsup ▸ hk
+      intro k _ x hx
+      have hk' : k ∈ ((M ⊔ V : Subgroup H) : Set H) := hsupMV ▸ Subgroup.mem_top k
       rw [Subgroup.mul_normal M V] at hk'
       obtain ⟨m, hm, v, hv, rfl⟩ := hk'
       rw [commutatorElement_def]
@@ -221,7 +245,7 @@ theorem cyclotomic_block [Group.IsSolvable H] {p : ℕ} [Fact p.Prime] {K Q W : 
       rw [e]
       exact M.mul_mem (M.mul_mem hm (M.inv_mem (hfix x hx v hv)))
         (conj_mem_of_mem_normalizer (hMQ hx) (M.inv_mem hm))
-    exact hMne (le_antisymm hMK (hKQ ▸ hle))
+    exact hMne (top_le_iff.mp (hsup ▸ sup_le (hKQ ▸ hle) hQM))
   -- `A` is a `q`-group
   have hAq : IsPGroup q (V ⧸ D') := by
     intro a
@@ -232,76 +256,28 @@ theorem cyclotomic_block [Group.IsSolvable H] {p : ℕ} [Fact p.Prime] {K Q W : 
         Subgroup.mem_subgroupOf]
       exact ⟨(v ^ q).2, hNM (by simpa using hexpV v v.2)⟩
   obtain ⟨c, hc⟩ := IsPGroup.iff_card.mp hAq
-  -- `q ≠ p`, as `q ∣ |K|`
   have hc0 : c ≠ 0 := by
     rintro rfl
     obtain ⟨x, a, hxa⟩ := hnt
     rw [pow_zero] at hc
     have : Subsingleton (V ⧸ D') := (Nat.card_eq_one_iff_unique.mp hc).1
     exact hxa (Subsingleton.elim _ _)
-  have hqK : q ∣ Nat.card K := by
-    refine (dvd_pow_self q hc0).trans ?_
-    rw [← hc, hcardA]
-    exact Subgroup.relIndex_dvd_card M K
-  have hpq : p ≠ q := fun h ↦ hK (h ▸ hqK)
+  have hqM : q ∣ M.index := by
+    rw [← hcardA, hc]
+    exact dvd_pow_self q hc0
+  -- `q ∣ [H : M] ∣ [H : Q] = [K : Q ⊓ K]`, so `q ∣ |K|`
+  have hQidx : Q.index = (Q ⊓ K).relIndex K := by
+    rw [← Subgroup.relIndex_top_right, ← hsup, sup_comm, relIndex_sup_normal]
+  have hqK : q ∣ Nat.card K :=
+    hqM.trans ((Subgroup.index_dvd_of_le hQM).trans
+      (hQidx ▸ Subgroup.relIndex_dvd_card (Q ⊓ K) K))
+  -- `q ≠ p`, as `[H : M] ∣ [H : Y]`
+  have hpq : p ≠ q := fun h ↦ hpY (by rw [h]; exact hqM.trans hMY)
   have hord := orderOf_le_of_fixedPoints hq hpq hQ hc hnt
   refine ⟨q, hq, hqK, ?_⟩
   calc q ^ orderOf (q : ZMod p) ∣ q ^ c := pow_dvd_pow q hord
-    _ = M.relIndex K := hc.symm.trans hcardA
-    _ ∣ W.relIndex K := Dvd.intro_left _ (Subgroup.relIndex_mul_relIndex W M K hWM hMK)
-
-/-- **A `p`-group conjugates into a subgroup of `p′`-index**: `Q` fixes a point
-`gY` of `H/Y`, since `p ∤ |H/Y|`, and then `g⁻¹Qg ≤ Y`. -/
-theorem exists_conj_mem_of_not_dvd {p : ℕ} [Fact p.Prime] {Q Y : Subgroup H}
-    (hQ : IsPGroup p Q) (hpY : ¬ p ∣ Y.index) : ∃ g : H, ∀ x ∈ Q, g⁻¹ * x * g ∈ Y := by
-  classical
-  obtain ⟨c, hc⟩ : (fixedPoints Q (H ⧸ Y)).Nonempty := by
-    by_contra hne
-    rw [Set.not_nonempty_iff_eq_empty] at hne
-    have hmod := hQ.card_modEq_card_fixedPoints (H ⧸ Y)
-    rw [hne] at hmod
-    simp only [Nat.card_of_isEmpty] at hmod
-    exact hpY ((Nat.modEq_zero_iff_dvd).mp hmod)
-  obtain ⟨g, rfl⟩ := QuotientGroup.mk_surjective c
-  refine ⟨g, fun x hx ↦ ?_⟩
-  have h := hc ⟨x⁻¹, Q.inv_mem hx⟩
-  rw [Subgroup.smul_def, MulAction.Quotient.smul_mk, smul_eq_mul, QuotientGroup.eq] at h
-  simpa [mul_assoc] using h
-
-/-- **(CB) in index form.**  If `K ⊔ Q = H` and `Y < H` has `p ∤ [H : Y]`, then
-some prime `q ∣ |K|` has `q^{ord_p q} ∣ [H : Y]`. -/
-theorem cyclotomic_block_index [Group.IsSolvable H] {p : ℕ} [Fact p.Prime]
-    {K Q Y : Subgroup H} [K.Normal] (hQ : IsPGroup p Q) (hK : ¬ p ∣ Nat.card K)
-    (hKQ : ⁅K, Q⁆ = K) (hsup : K ⊔ Q = ⊤) (hY : Y ≠ ⊤) (hpY : ¬ p ∣ Y.index) :
-    ∃ q, q.Prime ∧ q ∣ Nat.card K ∧ q ^ orderOf (q : ZMod p) ∣ Y.index := by
-  obtain ⟨g, hgx⟩ := exists_conj_mem_of_not_dvd hQ hpY
-  -- conjugate `Y` so that it contains `Q`
-  set Y₁ := Y.map ((MulAut.conj g : H ≃* H) : H →* H) with hY₁
-  have hidx : Y₁.index = Y.index := Subgroup.index_map_equiv Y (MulAut.conj g)
-  have hQY : Q ≤ Y₁ := by
-    intro x hx
-    refine ⟨g⁻¹ * x * g, hgx x hx, ?_⟩
-    change g * (g⁻¹ * x * g) * g⁻¹ = x
-    group
-  have hY₁ : Y₁ ≠ ⊤ := by
-    intro h
-    apply hY
-    rw [← Subgroup.index_eq_one, ← hidx, h, Subgroup.index_top]
-  -- `W = Y₁ ⊓ K` is a proper `Q`-invariant subgroup of `K`
-  have hWQ : Q ≤ Subgroup.normalizer ((Y₁ ⊓ K : Subgroup H) : Set H) :=
-    (le_inf (hQY.trans Subgroup.le_normalizer) Subgroup.le_normalizer_of_normal).trans
-      (Subgroup.inf_normalizer_le_normalizer_inf (H := Y₁) (K := K))
-  have hsup₁ : Y₁ ⊔ K = ⊤ :=
-    eq_top_iff.mpr (hsup ▸ sup_le le_sup_right (hQY.trans le_sup_left))
-  have hWne : Y₁ ⊓ K ≠ K := by
-    intro h
-    apply hY₁
-    rw [← hsup₁]
-    exact (sup_eq_left.mpr (inf_eq_right.mp h)).symm
-  have hYW : Y.index = (Y₁ ⊓ K).relIndex K := by
-    rw [← hidx, ← Subgroup.relIndex_top_right, ← hsup₁, relIndex_sup_normal]
-  rw [hYW]
-  exact cyclotomic_block hQ hK hKQ inf_le_right hWne hWQ
+    _ = M.index := hc.symm.trans hcardA
+    _ ∣ Y.index := hMY
 
 end Core
 
