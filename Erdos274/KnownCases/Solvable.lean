@@ -5,7 +5,6 @@ Authors: Murali Menon
 -/
 import Erdos274.KnownCases.Solvable.Step4
 import Erdos274.ExactCovering.Cardinality
-import Erdos274.ExactCovering.Counting.Volume
 import Erdos274.ExactCovering.Quotient
 
 /-!

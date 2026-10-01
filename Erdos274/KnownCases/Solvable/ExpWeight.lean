@@ -168,8 +168,6 @@ theorem W_univ (r : ι → ℝ≥0∞) : W r univ = ∏ i, (1 - r i)⁻¹ := by
   rw [← Set.pi_univ, W_pi]
   simp [ENNReal.tsum_geometric]
 
-theorem W_univ_fin {n : ℕ} (r : Fin n → ℝ≥0∞) : W r univ = ∏ i, (1 - r i)⁻¹ := W_univ r
-
 /-! ### Generic weight bookkeeping -/
 
 variable {ι κ : Type*} [Fintype ι] {r : ι → ℝ≥0∞}

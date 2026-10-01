@@ -40,11 +40,6 @@ theorem loc_dvd_card (j : κ) : loc C F j ∣ Nat.card G :=
   (Subgroup.relIndex_dvd_card _ _).trans (Subgroup.card_subgroup_dvd_card F)
 
 omit [Fintype G] in
-/-- A part is universal exactly when its local index is `1`. -/
-theorem le_of_loc_eq_one {j : κ} (h : loc C F j = 1) : F ≤ C.parts j :=
-  Subgroup.relIndex_eq_one.mp h
-
-omit [Fintype G] in
 /-- **The fibre count as an index sum**: `|Ω|/[G:F] ≤ ∑_{j∈T} 1/[G:Hⱼ]`. -/
 theorem ncard_div_le [Finite G] (Ω : Set (G ⧸ F)) (T : Finset κ)
     (hΩ : Nat.card F * Ω.ncard ≤ ∑ j ∈ T, Nat.card (C.parts j)) :

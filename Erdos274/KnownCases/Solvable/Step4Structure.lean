@@ -61,11 +61,6 @@ theorem inf_normalizer_le_normalizer_commutator (A B : Subgroup G) :
 
 variable [Finite G]
 
-/-- In a finite group, conjugating a subgroup into itself normalises it. -/
-theorem mem_normalizer_of_conj_mem {g : G} {A : Subgroup G} (h : ∀ x ∈ A, g * x * g⁻¹ ∈ A) :
-    g ∈ Subgroup.normalizer (A : Set G) :=
-  Subgroup.mem_normalizer_fintype h
-
 /-! ### Coprimality -/
 
 /-- An element of a normal `p′`-subgroup that normalises a `p`-subgroup
@@ -117,7 +112,7 @@ theorem exists_mul_centralizing {p : ℕ} [Fact p.Prime] {N Q : Subgroup G} [N.N
     (hQ.map _).comap_of_injective L.subtype L.subtype_injective
   obtain ⟨h, hh⟩ := CyclotomicBlock.exists_conj_mem_of_not_dvd hQnL hidx
   have hm : (h : G)⁻¹ * n ∈ Subgroup.normalizer (Q : Set G) := by
-    refine mem_normalizer_of_conj_mem fun y hy ↦ ?_
+    refine Subgroup.mem_normalizer_fintype fun y hy ↦ ?_
     have hyL : (⟨n * y * n⁻¹, hnL y hy⟩ : L) ∈ Qn.subgroupOf L := by
       rw [Subgroup.mem_subgroupOf]
       exact ⟨y, hy, by rw [MulEquiv.coe_toMonoidHom, MulAut.conj_apply]⟩

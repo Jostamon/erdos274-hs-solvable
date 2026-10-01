@@ -9,7 +9,6 @@ import Erdos274.KnownCases.Solvable.Step4Closure
 import Erdos274.KnownCases.Solvable.Step4Criterion
 import Erdos274.KnownCases.Solvable.SmallPrimes
 import Erdos274.KnownCases.Solvable.Minimality
-import Erdos274.ExactCovering.FiniteIndex
 
 /-!
 # Step 4, and the least counterexample

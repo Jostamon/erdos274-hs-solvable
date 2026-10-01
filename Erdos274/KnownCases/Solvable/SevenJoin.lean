@@ -6,7 +6,6 @@ Authors: Murali Menon
 import Erdos274.KnownCases.Solvable.SevenInstance
 import Erdos274.KnownCases.Solvable.DivisorWeight
 import Erdos274.KnownCases.Solvable.CoveringWeights
-import Erdos274.ExactCovering.Cells
 import Erdos274.KnownCases.Solvable.QuotientShadow.Basic
 import Mathlib.Tactic.NormNum.Prime
 

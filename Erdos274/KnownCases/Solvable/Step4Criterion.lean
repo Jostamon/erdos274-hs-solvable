@@ -257,11 +257,6 @@ theorem card_primesBelow_le (M : ℕ) (hM : 1 ≤ M) :
           exact Finset.card_le_two
       _ = 2 * (M + 1) + 2 := by ring
 
-/-- A product of factors `q/(q−1) ≥ 1` over a larger set is larger. -/
-theorem mertensProd_le_of_subset_two_le {Q Q' : Finset ℕ} (hQ' : ∀ q ∈ Q', 2 ≤ q)
-    (hsub : Q ⊆ Q') : mertensProd Q ≤ mertensProd Q' :=
-  Erdos274.mertensProd_le_of_subset_two_le hQ' hsub
-
 /-- The pair factor: `f(m)³ ≤ (12m+5)/(12m−7)` at `m = M + 1`, cleared of
 denominators.  Cleared, the difference of the two sides is a polynomial in
 `M` whose coefficients are all positive, so `ring_nf` and `positivity` close
@@ -315,7 +310,7 @@ theorem mertensProd_wheel (M : ℕ) (hM : 1 ≤ M) :
             (((6 * M + 7 : ℕ) : ℚ) / ((6 * M + 7 : ℕ) - 1))) := by
       unfold mertensProd
       rw [Finset.prod_union hdisj, Finset.prod_pair hab]
-    have hle := (mertensProd_le_of_subset_two_le htwo hsub).trans_eq hU
+    have hle := (Erdos274.mertensProd_le_of_subset_two_le htwo hsub).trans_eq hU
     set X := mertensProd (6 * M + 2).primesBelow with hX
     have hX0 : 0 ≤ X := by
       rw [hX]
