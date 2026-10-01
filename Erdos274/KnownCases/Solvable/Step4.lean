@@ -23,7 +23,8 @@ every smaller solvable group.  `false_of_minimal` shows there is none.  Let
   index is divisible by `3`.  No index is `2` (`index_ne_two`: the other parts
   would partition the index-2 subgroup, a smaller counterexample).  Then
   `∑ 1/dᵢ` falls short of `1` against `∏_{q ∣ |G|} q/(q−1) ≤ 3`.
-* `p ≥ 5`.  `Step4Structure.exists_structure` gives `F = KQ ◁ G`.  Some part
+* `p ≥ 5`.  `Step4Structure.exists_structure` gives `F = O^{p′}(G) ◁ G`, with
+  no nontrivial `p′`-quotient.  Some part
   is non-universal, or the covering descends to `G/F`.
   - If the criterion `Π_p·(S_p + 1/(p−1)) < 1` holds:
     `Step4Closure.false_of_covering`, with (CB) from `SevenCB.cb_loc`.
@@ -31,8 +32,8 @@ every smaller solvable group.  `false_of_minimal` shows there is none.  Let
     (`Step4Criterion.step4Crit_iff_ne_seven`): `SevenCB.false_of_structure`.
 
 **Step 4 is the case `p² ∣ |G|`.  The argument never uses the exponent of
-`p`**: the localisation `F = KQ`, (CB), the chambers and the closure hold for
-`|Q| = p` too.  So this also closes step 3, and `herzog_schonheim_of_solvable`
+`p`**: the localisation `F = O^{p′}(G)`, (CB), the chambers and the closure
+hold when `p ∥ |G|` too.  So this also closes step 3, and `herzog_schonheim_of_solvable`
 is HS for every finite solvable group, by strong induction on `|G|`.
 -/
 
@@ -73,12 +74,10 @@ theorem false_of_minimal [Finite G] [Group.IsSolvable G] (C : Group.ExactCoverin
   · exact false_of_small_primes C hκ hinj (index_ne_two C hinj hmin)
       fun q hq hqn ↦ (hmax q hq hqn).trans hp3
   have : Fact p.Prime := ⟨hp⟩
-  obtain ⟨K, Q, hKn, hFn, hQ, hQne, hK, hKQ⟩ := Step4Structure.exists_structure (p := p) hpG
-  set F := K ⊔ Q with hF
+  obtain ⟨F, hFn, hFbot, hres⟩ := Step4Structure.exists_structure (p := p) hpG
   have hdist : Set.InjOn (fun j ↦ (C.parts j).index) (nonUniv C F) := hinj.injOn
   -- some part is non-universal, or the covering descends to `G/F`
   have hneU : (nonUniv C F).Nonempty := by
-    have hFbot : F ≠ ⊥ := fun h ↦ hQne (eq_bot_iff.mpr (le_sup_right.trans_eq h))
     by_contra hempty
     rw [Finset.not_nonempty_iff_eq_empty] at hempty
     have hall : ∀ j, F ≤ C.parts j := fun j ↦ by
@@ -96,16 +95,14 @@ theorem false_of_minimal [Finite G] [Group.IsSolvable G] (C : Group.ExactCoverin
     by_cases hpj : p ∣ loc C F j
     · exact Or.inl hpj
     right
-    obtain ⟨q, hq, hqK, hdvd⟩ :=
-      SevenCB.cb_loc C F hF hQ hK hKQ (Finset.mem_filter.mp hj).2 hpj
-    have hqG : q ∣ n := hqK.trans (Subgroup.card_subgroup_dvd_card K)
-    have hqp : q ≠ p := fun h ↦ hK (h ▸ hqK)
+    obtain ⟨q, hq, hqp, hqG, hdvd⟩ :=
+      SevenCB.cb_loc C F hres (Finset.mem_filter.mp hj).2 hpj
     exact ⟨q, hq, lt_of_le_of_ne (hmax q hq hqG) hqp, hdvd⟩
   · -- the criterion fails only at `7`
     have hp7 : p = 7 := Step4Criterion.eq_seven_of_not_step4Crit hp h5 hc
     clear_value p
     subst hp7
-    exact SevenCB.false_of_structure C F hF hQ hK hKQ hmax hdist hneU
+    exact SevenCB.false_of_structure C F hres hmax hdist hneU
 
 /-- **Herzog–Schönheim for finite solvable groups.**  In a partition of a
 finite solvable group into at least two left cosets, two of the subgroups have

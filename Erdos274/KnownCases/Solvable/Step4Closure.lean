@@ -11,7 +11,7 @@ import Erdos274.Arithmetic.PrimeOrder
 
 `DECISION_LOG` D98 §3.  Let `F ◁ G`, `p` the largest prime of `|G|`, and
 suppose every non-universal part has `p ∣ ℓⱼ` or `q^{ord_p q} ∣ ℓⱼ` for a prime
-`q < p` (for `F = KQ` this is (CB), `SevenCB.cb_loc`).  Put `U = up{v(hⱼ)}`
+`q < p` (for `F = O^{p′}(G)` this is (CB), `SevenCB.cb_loc`).  Put `U = up{v(hⱼ)}`
 and `ν = Σ_{non-universal} 1/dⱼ`.  Then:
 
 * every non-universal `v(dⱼ) = v(hⱼ) + v(ℓⱼ)` lies in `A ∪ ⋃_q B_q`, with

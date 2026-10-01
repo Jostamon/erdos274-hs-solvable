@@ -23,13 +23,13 @@ with it have `7 ∣ ℓ` or `8 ∣ ℓ`.  The paper route went through
     `P`-fixed point, so its size is `0` or `p`.
   - Size `0`: `Y` is transitive on `H/Y₀`, so `H = Y₀Y`.  Size `p`: `Y`
     fixes `x₀`, so `Y` lies in a conjugate of `Y₀` and `(p+1) ∣ [H : Y]`.
-* `dvd_of_meet_of_succ`, **the exact-`(p+1)` chamber**.  Let `F = K ⊔ Q`,
-  with `Q` a `p`-group and `[K,Q] = K`.  A part sharing an `F`-coset with a
-  part of local index `p + 1` has `p ∣ ℓ` or `(p+1) ∣ ℓ`.
-  - If `p ∤ ℓ`, a conjugate `P` of `Q` lies in `Y = Hₖ ⊓ F`
-    (`CyclotomicBlock.exists_conj_mem_of_not_dvd`).
+* `dvd_of_meet_of_succ`, **the exact-`(p+1)` chamber**.  Let `F` have no
+  nontrivial `p′`-quotient (`CyclotomicBlock.IsPResidual`).  A part sharing an
+  `F`-coset with a part of local index `p + 1` has `p ∣ ℓ` or `(p+1) ∣ ℓ`.
+  - If `p ∤ ℓ`, a conjugate `P` of a Sylow `p`-subgroup `Q` of `F` lies in
+    `Y = Hₖ ⊓ F` (`CyclotomicBlock.exists_conj_mem_of_not_dvd`).
   - `P` moves some coset of `Y₀`: otherwise `Q` lies in the normal core of
-    `Y₀`, hence so do `[K,Q] = K` and `F`.
+    `Y₀`, a normal subgroup of `p′`-index, which is then `F`.
   - In the transitive case the two cells meet (`Chamber.eq_of_meet_of_mul`),
     so the parts coincide.
 -/
@@ -38,7 +38,7 @@ namespace Erdos274
 
 namespace ExactEight
 
-open MulAction QuotientShadow SevenJoin Chamber
+open MulAction QuotientShadow SevenJoin Chamber CyclotomicBlock
 
 universe u v
 
@@ -149,34 +149,18 @@ section Cover
 variable {G : Type u} [Group G] [Fintype G] {κ : Type v} [Fintype κ]
   (C : Group.ExactCovering G κ) (F : Subgroup G)
 
-omit [Fintype G] in
-/-- The structure `F = K ⊔ Q`, `[K,Q] = K`, read inside `F`. -/
-theorem subgroupOf_structure {K Q : Subgroup G} (hF : F = K ⊔ Q) (hKQ : ⁅K, Q⁆ = K) :
-    ⁅K.subgroupOf F, Q.subgroupOf F⁆ = K.subgroupOf F ∧
-      K.subgroupOf F ⊔ Q.subgroupOf F = ⊤ := by
-  have hKF : K ≤ F := hF ▸ le_sup_left
-  have hQF : Q ≤ F := hF ▸ le_sup_right
-  have hinj := Subgroup.map_injective (f := F.subtype) F.subtype_injective
-  have hmap : ∀ X : Subgroup G, X ≤ F → (X.subgroupOf F).map F.subtype = X := fun X hX ↦ by
-    rw [Subgroup.subgroupOf_map_subtype, inf_eq_left.mpr hX]
-  refine ⟨hinj ?_, hinj ?_⟩
-  · rw [Subgroup.map_commutator, hmap K hKF, hmap Q hQF, hKQ]
-  · rw [Subgroup.map_sup, hmap K hKF, hmap Q hQF, ← MonoidHom.range_eq_map,
-      Subgroup.range_subtype, hF]
-
 /-- **The exact-`(p+1)` chamber.** -/
-theorem dvd_of_meet_of_succ {p : ℕ} [Fact p.Prime] {K Q : Subgroup G} (hF : F = K ⊔ Q)
-    (hQ : IsPGroup p Q) (hKQ : ⁅K, Q⁆ = K) {j k : κ} {δ : G ⧸ F}
-    (hj : loc C F j = p + 1) (hδj : δ ∈ shadow C F j) (hδk : δ ∈ shadow C F k) :
+theorem dvd_of_meet_of_succ {p : ℕ} [Fact p.Prime] (hres : IsPResidual p F) {j k : κ}
+    {δ : G ⧸ F} (hj : loc C F j = p + 1) (hδj : δ ∈ shadow C F j) (hδk : δ ∈ shadow C F k) :
     p ∣ loc C F k ∨ (p + 1) ∣ loc C F k := by
   by_cases hpk : p ∣ loc C F k
   · exact Or.inl hpk
   right
-  obtain ⟨hKQ', hsup⟩ := subgroupOf_structure F hF hKQ
-  set Q' := Q.subgroupOf F
+  obtain ⟨S⟩ : Nonempty (Sylow p F) := inferInstance
+  set Q' : Subgroup F := (S : Subgroup F)
   set Y₀ := (C.parts j).subgroupOf F
   set Y := (C.parts k).subgroupOf F
-  have hQ' : IsPGroup p Q' := hQ.comap_of_injective F.subtype F.subtype_injective
+  have hQ' : IsPGroup p Q' := S.isPGroup'
   -- a conjugate `P` of `Q` inside `Y`
   obtain ⟨g, hg⟩ := CyclotomicBlock.exists_conj_mem_of_not_dvd hQ' hpk
   set P := Q'.map ((MulAut.conj g⁻¹ : F ≃* F) : F →* F)
@@ -195,11 +179,9 @@ theorem dvd_of_meet_of_succ {p : ℕ} [Fact p.Prime] {K Q : Subgroup G} (hF : F 
       have h := hall (g⁻¹ * x * g⁻¹⁻¹) ⟨x, hx, rfl⟩ (b * g)
       have e : b * g * (g⁻¹ * x * g⁻¹⁻¹) * (b * g)⁻¹ = b * x * b⁻¹ := by group
       rwa [e] at h
-    have hKc : K.subgroupOf F ≤ Y₀.normalCore := by
-      rw [← hKQ']
-      exact (Subgroup.commutator_mono le_rfl hQc).trans (Subgroup.commutator_le_right _ _)
-    have htop : Y₀ = ⊤ := eq_top_iff.mpr
-      (hsup ▸ (sup_le hKc hQc).trans Y₀.normalCore_le)
+    have hcore : Y₀.normalCore = ⊤ := hres _ inferInstance
+      fun h ↦ S.not_dvd_index (h.trans (Subgroup.index_dvd_of_le hQc))
+    have htop : Y₀ = ⊤ := top_le_iff.mp (hcore ▸ Y₀.normalCore_le)
     have h1 : loc C F j = 1 := by
       change Y₀.index = 1
       rw [htop, Subgroup.index_top]
@@ -216,14 +198,14 @@ theorem dvd_of_meet_of_succ {p : ℕ} [Fact p.Prime] {K Q : Subgroup G} (hF : F 
   · exact hdvd
 
 /-- **The exact-8 chamber** at `p = 7`: `2^{ord₇ 2} = 7 + 1`. -/
-theorem exact_eight {K Q : Subgroup G} (hF : F = K ⊔ Q) (hQ : IsPGroup 7 Q)
-    (hKQ : ⁅K, Q⁆ = K) {j k : κ} {δ : G ⧸ F} (hj : loc C F j = 2 ^ orderOf (2 : ZMod 7))
+theorem exact_eight (hres : IsPResidual 7 F) {j k : κ} {δ : G ⧸ F}
+    (hj : loc C F j = 2 ^ orderOf (2 : ZMod 7))
     (hδj : δ ∈ shadow C F j) (hδk : δ ∈ shadow C F k) :
     7 ∣ loc C F k ∨ 2 ^ orderOf (2 : ZMod 7) ∣ loc C F k := by
   have : Fact (Nat.Prime 7) := ⟨by norm_num⟩
   have h8 : 2 ^ orderOf (2 : ZMod 7) = 7 + 1 := by norm_num [SevenInstance.orderOf_two]
   rw [h8] at hj ⊢
-  exact dvd_of_meet_of_succ C F hF hQ hKQ hj hδj hδk
+  exact dvd_of_meet_of_succ C F hres hj hδj hδk
 
 end Cover
 
