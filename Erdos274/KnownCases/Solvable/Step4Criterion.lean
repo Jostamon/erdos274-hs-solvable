@@ -19,28 +19,21 @@ import Mathlib.Tactic.NormNum.Prime
 * `37 ≤ p ≤ 251`: one exact certificate, with the order-free bound
   `S_p ≤ ∑_{q<p} min(q⁻³, (p+1)⁻¹)` (`PrimeOrder.sOrd_le_rangeBound3`), which
   uses `ord_p q ≥ 3` for `p ≥ 5` (`PrimeOrder.three_le_ordMod`).
-* `p ≥ tailStart²`: **the wheel-6 bounds**, proved by induction over blocks
-  of six.  Every prime `q ≥ 5` is `6m ± 1`, so
-  - `Π_p³ ≤ Π₈³(2p + 17)/17` (`mertensProd_wheel`), because the pair factor
-    `f(m) = (6m−1)(6m+1)/((6m−2)·6m)` has `f(m)³ ≤ (12m+5)/(12m−7)`, which
-    telescopes from `M = 1`, where the bound is an equality;
-  - there are at most `2M + 2` primes below `6M + 2` (`card_primesBelow_le`);
-  - `∑_{q ≥ 6m+5} q⁻² ≤ 1/(9(2m+1))` (`tail_sum_le`), because
-    `(6M+5)⁻² + (6M+7)⁻² ≤ (1/(2M+1) − 1/(2M+3))/9`, which telescopes.
+* `p ≥ 256`: **the cube-root tail** (suggested by OpenAI GPT-5.6 Sol).  With
+  `t³ ≤ p < (t+1)³`, `t ≥ 6`, split `S_p ≤ ∑_{q<p} min(q⁻³, (p+1)⁻¹)` at `t`:
+  `S_p ≤ t/(p+1) + ∑_{n>t} n⁻³ ≤ 1/t² + 1/(2t²)` (`sum_Ico_inv_cube_le`, by
+  telescoping), and `1/(p−1) ≤ 1/(5t²)`.  The product uses the wheel-6 bound
+  `Π_p³ ≤ Π₈³(2p + 17)/17` (`mertensProd_wheel`): every prime `q ≥ 5` is
+  `6m ± 1`, and the pair factor `f(m) = (6m−1)(6m+1)/((6m−2)·6m)` has
+  `f(m)³ ≤ (12m+5)/(12m−7)`, which telescopes from `M = 1`.
 
-  Splitting `S_p` at `6m+5` with `m = ⌊√p⌋/6` gives
-  `t·(S_p + 1/(p−1)) ≤ tailBound t` for `t = ⌊√p⌋`; `tailBound` and
-  `(2(t+1)² + 17)/t³` decrease, so everything is controlled by one inequality
-  at `t = tailStart` (`tail_closes`).
-
-**Where the numbers come from.**  In the tail, every constant is a definition
-evaluated (`Π₈ = piBelow 8`, `tailBound tailStart`) or comes from a telescoping
-identity; the only chosen number is `tailStart`, the point where the tail takes
-over from the ranges, and it enters only through `tail_closes`.  Below it the
-work is finite and cannot be made uniform: the criterion **fails** at `p = 7`,
-and at `p = 37` it holds with a margin of about 1% (`DECISION_LOG` D94, D95),
-which no elementary bound on `Π_p` reaches.  The order table and the range
-certificate are that finite part.
+**Where the numbers come from.**  In the tail, `Π₈ = piBelow 8` is a definition
+evaluated, and `256` is where the range certificate stops; the closing
+inequality has a factor-of-two margin.  Below `256` the work is finite and
+cannot be made uniform: the criterion **fails** at `p = 7`, and at `p = 37` it
+holds with a margin of about 1% (`DECISION_LOG` D94, D95), which no elementary
+bound on `Π_p` reaches.  The order table and the range certificate are that
+finite part.
 -/
 
 namespace Erdos274
@@ -177,22 +170,6 @@ theorem primesBelow_step (M : ℕ) (hM : 1 ≤ M) :
   · refine Finset.mem_union_left _ (Nat.mem_primesBelow.mpr
       ⟨by omega, (Nat.mem_primesBelow.mp hq).2⟩)
 
-/-- **At most `2M + 2` primes below `6M + 2`.** -/
-theorem card_primesBelow_le (M : ℕ) (hM : 1 ≤ M) :
-    ((6 * M + 2).primesBelow).card ≤ 2 * M + 2 := by
-  induction M, hM using Nat.le_induction with
-  | base => decide
-  | succ M hM ih =>
-    calc ((6 * (M + 1) + 2).primesBelow).card
-        ≤ ((6 * M + 2).primesBelow ∪ {6 * M + 5, 6 * M + 7}).card :=
-          Finset.card_le_card (primesBelow_step M hM)
-      _ ≤ ((6 * M + 2).primesBelow).card + ({6 * M + 5, 6 * M + 7} : Finset ℕ).card :=
-          Finset.card_union_le _ _
-      _ ≤ 2 * M + 2 + 2 := by
-          gcongr
-          exact Finset.card_le_two
-      _ = 2 * (M + 1) + 2 := by ring
-
 /-- The pair factor: `f(m)³ ≤ (12m+5)/(12m−7)` at `m = M + 1`, cleared of
 denominators.  Cleared, the difference of the two sides is a polynomial in
 `M` whose coefficients are all positive, so `ring_nf` and `positivity` close
@@ -286,64 +263,7 @@ theorem mertensProd_wheel (M : ℕ) (hM : 1 ≤ M) :
           push_cast
           field_simp
 
-/-- The telescoping pair bound `(6M+5)⁻² + (6M+7)⁻² ≤ (1/(2M+1) − 1/(2M+3))/9`. -/
-theorem pair_sq (M : ℚ) (hM : 0 ≤ M) :
-    ((6 * M + 5) ^ 2)⁻¹ + ((6 * M + 7) ^ 2)⁻¹ ≤ (1 / (2 * M + 1) - 1 / (2 * M + 3)) / 9 := by
-  have h1 : 0 < 6 * M + 5 := by linarith
-  have h2 : 0 < 6 * M + 7 := by linarith
-  have h3 : 0 < 2 * M + 1 := by linarith
-  have h4 : 0 < 2 * M + 3 := by linarith
-  rw [div_sub_div _ _ h3.ne' h4.ne', inv_eq_one_div, inv_eq_one_div, div_add_div _ _
-    (by positivity) (by positivity), div_div, div_le_div_iff₀ (by positivity) (by positivity)]
-  nlinarith [sq_nonneg M, mul_pos h1 h2, mul_pos h3 h4]
-
-/-- **`∑_{6m+5 ≤ q < 6(m+k)+2} q⁻² ≤ (1/(2m+1) − 1/(2(m+k)+1))/9`.** -/
-theorem tail_sum_le (m k : ℕ) :
-    ∑ q ∈ (6 * (m + k) + 2).primesBelow.filter (6 * m + 5 ≤ ·), (((q : ℚ)) ^ 2)⁻¹ ≤
-      (1 / (2 * (m : ℚ) + 1) - 1 / (2 * ((m + k : ℕ) : ℚ) + 1)) / 9 := by
-  induction k with
-  | zero =>
-    have hempty : (6 * (m + 0) + 2).primesBelow.filter (6 * m + 5 ≤ ·) = ∅ := by
-      rw [Finset.filter_eq_empty_iff]
-      intro q hq
-      have := Nat.lt_of_mem_primesBelow hq
-      omega
-    rw [hempty]
-    simp
-  | succ k ih =>
-    set M := m + k with hM
-    have hsub := filter_primesBelow_step M (6 * m + 5) (by omega)
-    have hdisj : Disjoint ((6 * M + 2).primesBelow.filter (6 * m + 5 ≤ ·))
-        {6 * M + 5, 6 * M + 7} := by
-      rw [Finset.disjoint_left]
-      intro q hq hq'
-      have := Nat.lt_of_mem_primesBelow (Finset.mem_filter.mp hq).1
-      rcases Finset.mem_insert.mp hq' with rfl | h
-      · omega
-      · rw [Finset.mem_singleton] at h
-        omega
-    have hne : 6 * M + 5 ≠ 6 * M + 7 := by omega
-    have hM0 : (0 : ℚ) ≤ M := Nat.cast_nonneg M
-    have hpair := pair_sq (M : ℚ) hM0
-    have heq : m + (k + 1) = M + 1 := by omega
-    rw [heq]
-    calc ∑ q ∈ (6 * (M + 1) + 2).primesBelow.filter (6 * m + 5 ≤ ·), (((q : ℚ)) ^ 2)⁻¹
-        ≤ ∑ q ∈ (6 * M + 2).primesBelow.filter (6 * m + 5 ≤ ·) ∪ {6 * M + 5, 6 * M + 7},
-            (((q : ℚ)) ^ 2)⁻¹ :=
-          Finset.sum_le_sum_of_subset_of_nonneg hsub fun _ _ _ ↦ by positivity
-      _ = ∑ q ∈ (6 * M + 2).primesBelow.filter (6 * m + 5 ≤ ·), (((q : ℚ)) ^ 2)⁻¹ +
-            ((((6 * M + 5 : ℕ) : ℚ) ^ 2)⁻¹ + (((6 * M + 7 : ℕ) : ℚ) ^ 2)⁻¹) := by
-          rw [Finset.sum_union hdisj, Finset.sum_pair hne]
-      _ ≤ (1 / (2 * (m : ℚ) + 1) - 1 / (2 * (M : ℚ) + 1)) / 9 +
-            (1 / (2 * (M : ℚ) + 1) - 1 / (2 * (M : ℚ) + 3)) / 9 := by
-          refine add_le_add ih ?_
-          push_cast
-          exact hpair
-      _ = (1 / (2 * (m : ℚ) + 1) - 1 / (2 * ((M + 1 : ℕ) : ℚ) + 1)) / 9 := by
-          push_cast
-          ring
-
-/-! ### The tail `p ≥ tailStart²` -/
+/-! ### The tail `p ≥ 256` -/
 
 /-- `Π₈ = 35/8`, the definition evaluated. -/
 theorem piBelow_eight : piBelow 8 = 35 / 8 := by
@@ -351,134 +271,125 @@ theorem piBelow_eight : piBelow 8 = 35 / 8 := by
   simp only [mertensProd]
   norm_num
 
-/-- **Where the analytic tail starts**: `step4Crit_of_ge` covers `p ≥ tailStart²`
-and the range certificates cover the primes below.  The value matters only
-through `tail_closes`, the one inequality it has to satisfy; no statement
-depends on it. -/
-def tailStart : ℕ := 16
+/-- Every `p` lies in a cube bracket `t³ ≤ p < (t+1)³`. -/
+theorem exists_cube_bracket (p : ℕ) : ∃ t, t ^ 3 ≤ p ∧ p < (t + 1) ^ 3 := by
+  have h : ∃ t, p < (t + 1) ^ 3 :=
+    ⟨p, lt_of_lt_of_le (Nat.lt_succ_self p) (Nat.le_self_pow (by norm_num) _)⟩
+  refine ⟨Nat.find h, ?_, Nat.find_spec h⟩
+  rcases Nat.eq_zero_or_pos (Nat.find h) with h0 | hpos
+  · rw [h0]
+    simp
+  · obtain ⟨s, hs⟩ : ∃ s, Nat.find h = s + 1 := ⟨Nat.find h - 1, by omega⟩
+    have hmin := Nat.find_min h (show s < Nat.find h by omega)
+    rw [hs]
+    exact not_lt.mp hmin
 
-/-- The bound on `t·(S_p + 1/(p−1))`, `t = ⌊√p⌋`, one term per piece of
-`step4Crit_of_ge`: the small primes, the telescoped large primes, and
-`1/(p−1)`. -/
-def tailBound (t : ℚ) : ℚ :=
-  (t / 3 + 4) * t / (t ^ 2 + 1) + t / (3 * (t - 2)) + t / (t ^ 2 - 1)
+/-- The telescoping step `(a+1)⁻³ ≤ 1/(2a²) − 1/(2(a+1)²)`. -/
+theorem inv_cube_le_tele (a : ℚ) (ha : 1 ≤ a) :
+    ((a + 1) ^ 3)⁻¹ ≤ 1 / (2 * a ^ 2) - 1 / (2 * (a + 1) ^ 2) := by
+  have h0 : 0 < a := by linarith
+  rw [div_sub_div _ _ (by positivity) (by positivity), inv_eq_one_div,
+    div_le_div_iff₀ (by positivity) (by positivity)]
+  nlinarith [mul_nonneg (sq_nonneg (a + 1)) (by linarith : (0 : ℚ) ≤ 6 * a + 2)]
 
-theorem three_le_tailStart : 3 ≤ tailStart := by decide
-
-/-- `tailBound` is antitone from `3` on, so the tail is controlled by its value
-at `tailStart`. -/
-theorem tailBound_anti {s t : ℚ} (hs : 3 ≤ s) (hst : s ≤ t) : tailBound t ≤ tailBound s := by
-  unfold tailBound
-  have ht : 3 ≤ t := hs.trans hst
-  have hd : 0 ≤ t - s := sub_nonneg.mpr hst
-  have e1 : (t / 3 + 4) * t / (t ^ 2 + 1) ≤ (s / 3 + 4) * s / (s ^ 2 + 1) := by
-    rw [div_le_div_iff₀ (by positivity) (by positivity)]
-    have hk : 0 ≤ 4 * t * s - (t + s) / 3 - 4 := by
-      nlinarith [mul_nonneg (by linarith : (0 : ℚ) ≤ t - 3) (by linarith : (0 : ℚ) ≤ s - 3)]
-    nlinarith [mul_nonneg hd hk]
-  have e2 : t / (3 * (t - 2)) ≤ s / (3 * (s - 2)) := by
-    rw [div_le_div_iff₀ (by linarith) (by linarith)]
-    nlinarith
-  have e3 : t / (t ^ 2 - 1) ≤ s / (s ^ 2 - 1) := by
-    rw [div_le_div_iff₀ (by nlinarith) (by nlinarith)]
-    nlinarith [mul_nonneg hd (by nlinarith : (0 : ℚ) ≤ t * s + 1)]
-  linarith
-
-/-- **The tail closes at `tailStart`**: with `Π³ ≤ Π₈³(2p+17)/17` and
-`p < (t+1)²`, this is `(Π_p(S_p + 1/(p−1)))³ < 1` at `t = tailStart`.  The
-one numerical fact of the tail: `Π₈` and `tailBound` evaluated there. -/
-theorem tail_closes :
-    piBelow 8 ^ 3 * (2 * ((tailStart : ℚ) + 1) ^ 2 + 17) * tailBound tailStart ^ 3 <
-      17 * (tailStart : ℚ) ^ 3 := by
-  rw [piBelow_eight]
-  norm_num [tailBound, tailStart]
-
-/-- `(2(t+1)² + 17)/t³` decreases: its value at `t ≥ s` is at most its value
-at `s`, cleared of denominators. -/
-theorem cube_ratio_anti {s t : ℚ} (hs : 0 < s) (hst : s ≤ t) :
-    (2 * (t + 1) ^ 2 + 17) * s ^ 3 ≤ (2 * (s + 1) ^ 2 + 17) * t ^ 3 := by
-  have ht : 0 < t := hs.trans_le hst
-  have hd : 0 ≤ t - s := sub_nonneg.mpr hst
-  have k1 : t ^ 2 * s ^ 3 ≤ s ^ 2 * t ^ 3 := by
-    nlinarith only [mul_nonneg (mul_nonneg (sq_nonneg t) (sq_nonneg s)) hd]
-  have k2 : t * s ^ 3 ≤ s * t ^ 3 := by
-    nlinarith only [mul_nonneg (mul_nonneg ht.le hs.le) (mul_nonneg hd (by linarith : 0 ≤ t + s))]
-  have k3 : s ^ 3 ≤ t ^ 3 := pow_le_pow_left₀ hs.le hst 3
-  nlinarith only [k1, k2, k3]
-
-/-- **The pieces of `S_p + 1/(p−1)` against `tailBound`**: with `t = ⌊√p⌋` and
-`m = ⌊t/6⌋`, the bound `S ≤ (2m+4)/(p+1) + 1/(9(2m+1))` of the split sum gives
-`t·(S + 1/(p−1)) ≤ tailBound t`. -/
-theorem mul_le_tailBound {t m p S : ℚ} (ht : 3 ≤ t) (h6m1 : 6 * m ≤ t)
-    (h6m2 : t ≤ 6 * m + 5) (htp : t * t ≤ p)
-    (hS : S ≤ (2 * m + 4) / (p + 1) + 1 / (9 * (2 * m + 1))) :
-    t * (S + 1 / (p - 1)) ≤ tailBound t := by
-  have ht0 : 0 < t := by linarith
-  have e1 : (2 * m + 4) / (p + 1) ≤ (t / 3 + 4) / (t ^ 2 + 1) := by
-    rw [div_le_div_iff₀ (by nlinarith) (by positivity)]
-    exact mul_le_mul (by linarith) (by nlinarith) (by positivity) (by linarith)
-  have e2 : 1 / (9 * (2 * m + 1)) ≤ 1 / (3 * (t - 2)) :=
-    one_div_le_one_div_of_le (by linarith) (by linarith)
-  have e3 : 1 / (p - 1) ≤ 1 / (t ^ 2 - 1) :=
-    one_div_le_one_div_of_le (by nlinarith) (by nlinarith)
-  have hsum : S + 1 / (p - 1) ≤
-      (t / 3 + 4) / (t ^ 2 + 1) + 1 / (3 * (t - 2)) + 1 / (t ^ 2 - 1) := by
+/-- **`∑_{t < n ≤ t+K} n⁻³ ≤ 1/(2t²) − 1/(2(t+K)²)`**, by telescoping. -/
+theorem sum_Ico_inv_cube_le (t : ℕ) (ht : 1 ≤ t) (K : ℕ) :
+    ∑ n ∈ Finset.Ico (t + 1) (t + 1 + K), ((n : ℚ) ^ 3)⁻¹ ≤
+      1 / (2 * (t : ℚ) ^ 2) - 1 / (2 * ((t + K : ℕ) : ℚ) ^ 2) := by
+  induction K with
+  | zero => simp
+  | succ K ih =>
+    rw [show t + 1 + (K + 1) = (t + 1 + K) + 1 by ring, Finset.sum_Ico_succ_top (by omega)]
+    have h1 : (1 : ℚ) ≤ ((t + K : ℕ) : ℚ) := by
+      have : 1 ≤ t + K := by omega
+      exact_mod_cast this
+    have h := inv_cube_le_tele ((t + K : ℕ) : ℚ) h1
+    have e1 : ((t + 1 + K : ℕ) : ℚ) = ((t + K : ℕ) : ℚ) + 1 := by push_cast; ring
+    have e2 : ((t + (K + 1) : ℕ) : ℚ) = ((t + K : ℕ) : ℚ) + 1 := by push_cast; ring
+    rw [e1, e2]
     linarith
-  calc t * (S + 1 / (p - 1))
-      ≤ t * ((t / 3 + 4) / (t ^ 2 + 1) + 1 / (3 * (t - 2)) + 1 / (t ^ 2 - 1)) :=
-        mul_le_mul_of_nonneg_left hsum ht0.le
-    _ = tailBound t := by unfold tailBound; ring
 
-/-- **The closing step of the tail.**  If `P ≤ c(2(t+1)² + 17)/17` and
-`t·X ≤ tailBound tailStart` with `t ≥ tailStart`, then `P·X³ < 1`, given
-`tail_closes` in the form `hclose`. -/
-theorem mul_cube_lt_one {c P t X : ℚ} (hc : 0 ≤ c) (hX0 : 0 ≤ X) (ht : (tailStart : ℚ) ≤ t)
-    (hP : P ≤ c * (2 * (t + 1) ^ 2 + 17) / 17) (htX : t * X ≤ tailBound tailStart)
-    (hclose : c * (2 * ((tailStart : ℚ) + 1) ^ 2 + 17) * tailBound tailStart ^ 3 <
-      17 * (tailStart : ℚ) ^ 3) :
-    P * X ^ 3 < 1 := by
-  have hS0 : (0 : ℚ) < tailStart := by exact_mod_cast (show 0 < tailStart by decide)
-  have ht0 : 0 < t := hS0.trans_le ht
-  set B := tailBound tailStart with hBdef
-  have hB0 : 0 ≤ B := le_trans (mul_nonneg ht0.le hX0) htX
-  set K := c * (2 * (t + 1) ^ 2 + 17) with hK
-  have hK0 : 0 ≤ K := mul_nonneg hc (by positivity)
-  have hXB : (t * X) ^ 3 ≤ B ^ 3 := pow_le_pow_left₀ (mul_nonneg ht0.le hX0) htX 3
-  -- `K·X³·t³ ≤ K·B³`
-  have step2 : K * X ^ 3 * t ^ 3 ≤ K * B ^ 3 := by
-    rw [mul_assoc, ← mul_pow, mul_comm X]
-    exact mul_le_mul_of_nonneg_left hXB hK0
-  -- `K·B³·s³ < 17·s³·t³`, `s = tailStart`
-  have step3 : K * B ^ 3 * (tailStart : ℚ) ^ 3 < 17 * (tailStart : ℚ) ^ 3 * t ^ 3 := by
-    have hcB : 0 ≤ c * B ^ 3 := mul_nonneg hc (pow_nonneg hB0 3)
-    calc K * B ^ 3 * (tailStart : ℚ) ^ 3
-        = c * B ^ 3 * ((2 * (t + 1) ^ 2 + 17) * (tailStart : ℚ) ^ 3) := by rw [hK]; ring
-      _ ≤ c * B ^ 3 * ((2 * ((tailStart : ℚ) + 1) ^ 2 + 17) * t ^ 3) :=
-          mul_le_mul_of_nonneg_left (cube_ratio_anti hS0 ht) hcB
-      _ = (c * (2 * ((tailStart : ℚ) + 1) ^ 2 + 17) * B ^ 3) * t ^ 3 := by ring
-      _ < (17 * (tailStart : ℚ) ^ 3) * t ^ 3 := mul_lt_mul_of_pos_right hclose (by positivity)
-  -- so `K·X³ < 17`
-  have hKX : K * X ^ 3 < 17 := by
-    have h := lt_of_le_of_lt
-      (mul_le_mul_of_nonneg_right step2 (by positivity : (0 : ℚ) ≤ (tailStart : ℚ) ^ 3)) step3
-    have e1 : K * X ^ 3 * t ^ 3 * (tailStart : ℚ) ^ 3 =
-        (K * X ^ 3) * (t ^ 3 * (tailStart : ℚ) ^ 3) := by ring
-    have e2 : 17 * (tailStart : ℚ) ^ 3 * t ^ 3 = 17 * (t ^ 3 * (tailStart : ℚ) ^ 3) := by ring
-    rw [e1, e2] at h
-    exact lt_of_mul_lt_mul_right h (by positivity)
-  calc P * X ^ 3 ≤ K / 17 * X ^ 3 := mul_le_mul_of_nonneg_right hP (pow_nonneg hX0 3)
-    _ = K * X ^ 3 / 17 := by ring
-    _ < 1 := by rw [div_lt_one (by norm_num)]; exact hKX
-
-/-- **The criterion at every prime `p ≥ tailStart²`.** -/
-theorem step4Crit_of_ge {p : ℕ} (hp : p.Prime) (hge : tailStart ^ 2 ≤ p) : step4Crit p := by
-  set t := Nat.sqrt p with ht
-  have htS : tailStart ≤ t := by
-    rw [ht, Nat.le_sqrt]
-    simpa [sq] using hge
-  have ht3 : 3 ≤ t := three_le_tailStart.trans htS
-  have htp : t * t ≤ p := Nat.sqrt_le p
-  have hpt : p < (t + 1) * (t + 1) := Nat.lt_succ_sqrt p
+/-- **The criterion at every prime `p ≥ 256`.**  With `t³ ≤ p < (t+1)³`,
+`t ≥ 6`: the primes `q ≤ t` give at most `t/(p+1) ≤ t⁻²` to `S_p`, the others
+at most `∑_{n>t} n⁻³ ≤ 1/(2t²)`, and `1/(p−1) ≤ 1/(5t²)`; so
+`S_p + 1/(p−1) ≤ 17/(10t²)`.  With `Π_p³ ≤ (35/8)³(2p+17)/17 ≤ (35/8)³·529p/4352`
+and `(t+1)/t² ≤ 7/36`, the cube of the criterion is below `0.37`. -/
+theorem step4Crit_of_ge {p : ℕ} (hp : p.Prime) (hge : 256 ≤ p) : step4Crit p := by
+  obtain ⟨t, htp, hpt⟩ := exists_cube_bracket p
+  have ht6 : 6 ≤ t := by
+    by_contra h
+    have h216 : (t + 1) ^ 3 ≤ 216 :=
+      calc (t + 1) ^ 3 ≤ 6 ^ 3 := Nat.pow_le_pow_left (by omega) 3
+        _ = 216 := by norm_num
+    exact absurd (lt_of_lt_of_le hpt h216) (by omega)
+  set T : ℚ := (t : ℚ) with hTdef
+  have hT6 : (6 : ℚ) ≤ T := by rw [hTdef]; exact_mod_cast ht6
+  have hT0 : 0 < T := by linarith
+  have hT2 : 0 < T ^ 2 := pow_pos hT0 2
+  have htp' : T ^ 3 ≤ (p : ℚ) := by rw [hTdef]; exact_mod_cast htp
+  have hpt' : (p : ℚ) < (T + 1) ^ 3 := by rw [hTdef]; exact_mod_cast hpt
+  -- the order-free sum, split at `t`
+  have hS : sOrd p ≤ T / ((p : ℚ) + 1) + 1 / (2 * T ^ 2) := by
+    refine (sOrd_le_rangeBound3 hp (by omega) le_rfl le_rfl).trans ?_
+    rw [rangeBound3_def, ← Finset.sum_filter_add_sum_filter_not _ (· ≤ t)]
+    gcongr
+    · -- at most `t` small primes, each at most `(p+1)⁻¹`
+      calc ∑ q ∈ p.primesBelow.filter (· ≤ t), min (((q : ℚ) ^ 3)⁻¹) (((p : ℚ) + 1)⁻¹)
+          ≤ ∑ q ∈ p.primesBelow.filter (· ≤ t), ((p : ℚ) + 1)⁻¹ :=
+            Finset.sum_le_sum fun _ _ ↦ min_le_right _ _
+        _ = (p.primesBelow.filter (· ≤ t)).card * ((p : ℚ) + 1)⁻¹ := by
+            rw [Finset.sum_const, nsmul_eq_mul]
+        _ ≤ T * ((p : ℚ) + 1)⁻¹ := by
+            gcongr
+            have hsub : p.primesBelow.filter (· ≤ t) ⊆ Finset.Icc 1 t := by
+              intro q hq
+              obtain ⟨hq1, hq2⟩ := Finset.mem_filter.mp hq
+              have := (Nat.prime_of_mem_primesBelow hq1).one_lt
+              exact Finset.mem_Icc.mpr ⟨by omega, hq2⟩
+            have hc := (Finset.card_le_card hsub).trans_eq (Nat.card_Icc 1 t)
+            have hc' : (p.primesBelow.filter (· ≤ t)).card ≤ t := by omega
+            rw [hTdef]
+            exact_mod_cast hc'
+        _ = T / ((p : ℚ) + 1) := by rw [div_eq_mul_inv]
+    · -- the large primes, by the telescoping tail
+      calc ∑ q ∈ p.primesBelow.filter (fun q ↦ ¬ q ≤ t),
+              min (((q : ℚ) ^ 3)⁻¹) (((p : ℚ) + 1)⁻¹)
+          ≤ ∑ q ∈ p.primesBelow.filter (fun q ↦ ¬ q ≤ t), ((q : ℚ) ^ 3)⁻¹ :=
+            Finset.sum_le_sum fun _ _ ↦ min_le_left _ _
+        _ ≤ ∑ n ∈ Finset.Ico (t + 1) (t + 1 + p), ((n : ℚ) ^ 3)⁻¹ := by
+            refine Finset.sum_le_sum_of_subset_of_nonneg ?_ fun _ _ _ ↦ by positivity
+            intro q hq
+            obtain ⟨hq1, hq2⟩ := Finset.mem_filter.mp hq
+            have := Nat.lt_of_mem_primesBelow hq1
+            exact Finset.mem_Ico.mpr ⟨by omega, by omega⟩
+        _ ≤ 1 / (2 * T ^ 2) - 1 / (2 * ((t + p : ℕ) : ℚ) ^ 2) :=
+            sum_Ico_inv_cube_le t (by omega) p
+        _ ≤ 1 / (2 * T ^ 2) := by
+            have : (0 : ℚ) ≤ 1 / (2 * ((t + p : ℕ) : ℚ) ^ 2) := by positivity
+            linarith
+  -- `S_p + 1/(p−1) ≤ 17/(10t²)`
+  set X := sOrd p + 1 / ((p : ℚ) - 1) with hXdef
+  have hX : X ≤ 17 / (10 * T ^ 2) := by
+    have h63 : 6 * T ^ 2 ≤ T ^ 3 := by
+      nlinarith [mul_nonneg (sq_nonneg T) (sub_nonneg.mpr hT6)]
+    have e1 : T / ((p : ℚ) + 1) ≤ 1 / T ^ 2 := by
+      rw [div_le_div_iff₀ (by positivity) hT2]
+      have : T * T ^ 2 = T ^ 3 := by ring
+      linarith
+    have e2 : 1 / ((p : ℚ) - 1) ≤ 1 / (5 * T ^ 2) := by
+      apply one_div_le_one_div_of_le (by positivity)
+      nlinarith
+    have e3 : 17 / (10 * T ^ 2) = 1 / T ^ 2 + 1 / (2 * T ^ 2) + 1 / (5 * T ^ 2) := by
+      field_simp
+      ring
+    rw [e3]
+    linarith
+  have hX0 : 0 ≤ X := by
+    have := sOrd_nonneg p
+    have : (0 : ℚ) < (p : ℚ) - 1 := by
+      have : (256 : ℚ) ≤ p := by exact_mod_cast hge
+      linarith
+    positivity
   -- the Mertens product, by the wheel
   set M := p / 6 + 1 with hMdef
   have hM1 : 1 ≤ M := by omega
@@ -496,71 +407,35 @@ theorem step4Crit_of_ge {p : ℕ} (hp : p.Prime) (hge : tailStart ^ 2 ≤ p) : s
           pow_le_pow_left₀ (piBelow_nonneg p) h1 3
       _ ≤ piBelow 8 ^ 3 * (12 * M + 5) / 17 := h2
       _ ≤ piBelow 8 ^ 3 * (2 * (p : ℚ) + 17) / 17 := by gcongr
-  have htp' : (t : ℚ) * t ≤ p := by exact_mod_cast htp
-  have hpt' : (p : ℚ) < (t + 1) * (t + 1) := by exact_mod_cast hpt
-  have hP : piBelow p ^ 3 ≤ piBelow 8 ^ 3 * (2 * ((t : ℚ) + 1) ^ 2 + 17) / 17 := by
-    refine hA3.trans ?_
-    gcongr
-    nlinarith only [hpt']
-  -- the order-free sum, split at `6m + 5`
-  set m := t / 6 with hmdef
-  have h6m : 6 * m ≤ t := Nat.mul_div_le t 6
-  have h6m' : t ≤ 6 * m + 5 := by omega
-  have hS : sOrd p ≤ (2 * (m : ℚ) + 4) / ((p : ℚ) + 1) + 1 / (9 * (2 * (m : ℚ) + 1)) := by
-    refine (sOrd_le_rangeBound_self hp).trans ?_
-    rw [rangeBound_def, ← Finset.sum_filter_add_sum_filter_not _ (· < 6 * m + 5)]
-    gcongr
-    · -- few small primes, each at most `(p+1)⁻¹`
-      calc ∑ q ∈ p.primesBelow.filter (· < 6 * m + 5),
-              min (((q : ℚ) ^ 2)⁻¹) (((p : ℚ) + 1)⁻¹)
-          ≤ ∑ q ∈ p.primesBelow.filter (· < 6 * m + 5), ((p : ℚ) + 1)⁻¹ :=
-            Finset.sum_le_sum fun _ _ ↦ min_le_right _ _
-        _ = (p.primesBelow.filter (· < 6 * m + 5)).card * ((p : ℚ) + 1)⁻¹ := by
-            rw [Finset.sum_const, nsmul_eq_mul]
-        _ ≤ (2 * (m : ℚ) + 4) * ((p : ℚ) + 1)⁻¹ := by
-            gcongr
-            have hsub : p.primesBelow.filter (· < 6 * m + 5) ⊆
-                (6 * (m + 1) + 2).primesBelow := by
-              intro q hq
-              obtain ⟨hq1, hq2⟩ := Finset.mem_filter.mp hq
-              exact Nat.mem_primesBelow.mpr ⟨by omega, (Nat.mem_primesBelow.mp hq1).2⟩
-            have hc := (Finset.card_le_card hsub).trans (card_primesBelow_le (m + 1) (by omega))
-            have : ((p.primesBelow.filter (· < 6 * m + 5)).card : ℚ) ≤ 2 * (m + 1) + 2 := by
-              exact_mod_cast hc
-            linarith
-        _ = (2 * (m : ℚ) + 4) / ((p : ℚ) + 1) := by rw [div_eq_mul_inv]
-    · -- the large primes, by the telescoping tail
-      calc ∑ q ∈ p.primesBelow.filter (fun q ↦ ¬ q < 6 * m + 5),
-              min (((q : ℚ) ^ 2)⁻¹) (((p : ℚ) + 1)⁻¹)
-          ≤ ∑ q ∈ p.primesBelow.filter (fun q ↦ ¬ q < 6 * m + 5), ((q : ℚ) ^ 2)⁻¹ :=
-            Finset.sum_le_sum fun _ _ ↦ min_le_left _ _
-        _ ≤ ∑ q ∈ (6 * (m + p) + 2).primesBelow.filter (6 * m + 5 ≤ ·), ((q : ℚ) ^ 2)⁻¹ := by
-            refine Finset.sum_le_sum_of_subset_of_nonneg ?_ fun _ _ _ ↦ by positivity
-            intro q hq
-            obtain ⟨hq1, hq2⟩ := Finset.mem_filter.mp hq
-            exact Finset.mem_filter.mpr ⟨primesBelow_mono (by omega) hq1, by omega⟩
-        _ ≤ (1 / (2 * (m : ℚ) + 1) - 1 / (2 * ((m + p : ℕ) : ℚ) + 1)) / 9 := tail_sum_le m p
-        _ ≤ (1 / (2 * (m : ℚ) + 1)) / 9 := by
-            have : (0 : ℚ) ≤ 1 / (2 * ((m + p : ℕ) : ℚ) + 1) := by positivity
-            exact div_le_div_of_nonneg_right (by linarith) (by norm_num)
-        _ = 1 / (9 * (2 * (m : ℚ) + 1)) := by rw [div_div, mul_comm]
-  -- `t·(S_p + 1/(p−1)) ≤ tailBound t ≤ tailBound tailStart`
-  have htS' : (tailStart : ℚ) ≤ t := by exact_mod_cast htS
-  have htX : (t : ℚ) * (sOrd p + 1 / ((p : ℚ) - 1)) ≤ tailBound tailStart :=
-    (mul_le_tailBound (by exact_mod_cast ht3) (by exact_mod_cast h6m)
-      (by exact_mod_cast h6m') htp' hS).trans
-      (tailBound_anti (by exact_mod_cast three_le_tailStart) htS')
-  have hX0 : 0 ≤ sOrd p + 1 / ((p : ℚ) - 1) := by
-    have := sOrd_nonneg p
-    have : (0 : ℚ) < (p : ℚ) - 1 := by
-      have : (3 : ℚ) ≤ t := by exact_mod_cast ht3
-      nlinarith only [this, htp']
-    positivity
+  have hP : piBelow p ^ 3 < (35 / 8) ^ 3 * (529 / 4352) * (T + 1) ^ 3 := by
+    rw [piBelow_eight] at hA3
+    have hp256 : (256 : ℚ) ≤ p := by exact_mod_cast hge
+    calc piBelow p ^ 3 ≤ (35 / 8) ^ 3 * (2 * (p : ℚ) + 17) / 17 := hA3
+      _ ≤ (35 / 8) ^ 3 * (529 / 4352) * p := by nlinarith
+      _ < (35 / 8) ^ 3 * (529 / 4352) * (T + 1) ^ 3 :=
+          mul_lt_mul_of_pos_left hpt' (by norm_num)
   -- `(Π_p·X)³ < 1`
-  have hcube : (piBelow p * (sOrd p + 1 / ((p : ℚ) - 1))) ^ 3 < 1 ^ 3 := by
-    rw [mul_pow, one_pow]
-    exact mul_cube_lt_one hc0 hX0 htS' hP htX tail_closes
-  exact lt_of_pow_lt_pow_left₀ 3 zero_le_one hcube
+  have hr : (T + 1) / T ^ 2 ≤ 7 / 36 := by
+    rw [div_le_div_iff₀ hT2 (by norm_num)]
+    nlinarith [mul_nonneg (sub_nonneg.mpr hT6) (by linarith : (0 : ℚ) ≤ 7 * T + 6)]
+  have heq : (T + 1) ^ 3 * (17 / (10 * T ^ 2)) ^ 3 = (17 / 10) ^ 3 * ((T + 1) / T ^ 2) ^ 3 := by
+    field_simp
+  have hcube : (piBelow p * X) ^ 3 < 1 := by
+    rw [mul_pow]
+    have hX3 : X ^ 3 ≤ (17 / (10 * T ^ 2)) ^ 3 := pow_le_pow_left₀ hX0 hX 3
+    have hA0 : 0 ≤ piBelow p ^ 3 := pow_nonneg (piBelow_nonneg p) 3
+    have hpos : 0 < (17 / (10 * T ^ 2)) ^ 3 := pow_pos (div_pos (by norm_num) (by positivity)) 3
+    calc piBelow p ^ 3 * X ^ 3 ≤ piBelow p ^ 3 * (17 / (10 * T ^ 2)) ^ 3 :=
+          mul_le_mul_of_nonneg_left hX3 hA0
+      _ < (35 / 8) ^ 3 * (529 / 4352) * (T + 1) ^ 3 * (17 / (10 * T ^ 2)) ^ 3 :=
+          mul_lt_mul_of_pos_right hP hpos
+      _ = (35 / 8) ^ 3 * (529 / 4352) * ((17 / 10) ^ 3 * ((T + 1) / T ^ 2) ^ 3) := by
+          rw [mul_assoc, heq]
+      _ ≤ (35 / 8) ^ 3 * (529 / 4352) * ((17 / 10) ^ 3 * (7 / 36) ^ 3) := by
+          have : 0 ≤ (T + 1) / T ^ 2 := by positivity
+          gcongr
+      _ < 1 := by norm_num
+  exact lt_of_pow_lt_pow_left₀ 3 zero_le_one (by rwa [one_pow])
 
 /-! ### Every prime -/
 
@@ -569,9 +444,8 @@ theorem step4Crit_of_prime {p : ℕ} (hp : p.Prime) (h5 : 5 ≤ p) (h7 : p ≠ 7
     step4Crit p := by
   rcases le_or_gt p 31 with h | h
   · exact step4Crit_of_le_thirtyone hp h5 h h7
-  rcases lt_or_ge p (tailStart ^ 2) with h' | h'
-  · have h'' : p < 256 := by simpa [tailStart] using h'
-    refine step4Crit_of_mid hp ?_ (by omega)
+  rcases lt_or_ge p 256 with h' | h'
+  · refine step4Crit_of_mid hp ?_ (by omega)
     rcases Nat.lt_or_ge p 37 with hlt | hge
     · interval_cases p <;> norm_num at hp
     · exact hge
