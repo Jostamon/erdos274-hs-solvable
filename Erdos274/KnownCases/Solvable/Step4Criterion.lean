@@ -16,9 +16,9 @@ import Mathlib.Tactic.NormNum.Prime
 (`not_step4Crit_seven`) is what makes the separate `p = 7` closure necessary.
 
 * `p ≤ 31`: the order table of `PrimeOrder`.
-* `37 ≤ p ≤ 251`: one exact certificate per range, with the order-free bound
-  `S_p ≤ ∑_{q<p} min(q⁻², (p+1)⁻¹)` (`PrimeOrder.sOrd_le_rangeBound`), as in
-  `CELargePrimes`.
+* `37 ≤ p ≤ 251`: one exact certificate, with the order-free bound
+  `S_p ≤ ∑_{q<p} min(q⁻³, (p+1)⁻¹)` (`PrimeOrder.sOrd_le_rangeBound3`), which
+  uses `ord_p q ≥ 3` for `p ≥ 5` (`PrimeOrder.three_le_ordMod`).
 * `p ≥ tailStart²`: **the wheel-6 bounds**, proved by induction over blocks
   of six.  Every prime `q ≥ 5` is `6m ± 1`, so
   - `Π_p³ ≤ Π₈³(2p + 17)/17` (`mertensProd_wheel`), because the pair factor
@@ -40,9 +40,7 @@ over from the ranges, and it enters only through `tail_closes`.  Below it the
 work is finite and cannot be made uniform: the criterion **fails** at `p = 7`,
 and at `p = 37` it holds with a margin of about 1% (`DECISION_LOG` D94, D95),
 which no elementary bound on `Π_p` reaches.  The order table and the range
-certificates are that finite part.  The range endpoints only partition
-`[37, tailStart²)` into pieces on which one certificate closes; no statement
-depends on them.
+certificate are that finite part.
 -/
 
 namespace Erdos274
@@ -106,39 +104,24 @@ theorem step4Crit_of_le_thirtyone {p : ℕ} (hp : p.Prime) (h5 : 5 ≤ p) (h31 :
   · exact step4Crit_of_bounds (by norm_num) piBelow_thirtyone_le sOrd_thirtyone_le
       (by norm_num)
 
-/-! ### Ranges -/
+/-! ### The middle range -/
 
-/-- **One certificate for a range**: `Π_b·(rangeBound a b + 1/(a−1)) < 1`
-gives the criterion at every prime in `[a, b]`. -/
-theorem step4Crit_of_range {a b p : ℕ} (hp : p.Prime) (ha : 2 ≤ a) (hap : a ≤ p) (hpb : p ≤ b)
-    (h : piBelow b * (rangeBound a b + 1 / ((a : ℚ) - 1)) < 1) : step4Crit p := by
-  refine step4Crit_of_bounds (ha.trans hap) (piBelow_mono hpb) (sOrd_le_rangeBound hp hap hpb)
-    (lt_of_le_of_lt ?_ h)
+/-- **One certificate for a range**: `Π_b·(rangeBound3 a b + 1/(a−1)) < 1`
+gives the criterion at every prime in `[a, b]`, for `5 ≤ a`. -/
+theorem step4Crit_of_range3 {a b p : ℕ} (hp : p.Prime) (ha : 5 ≤ a) (hap : a ≤ p) (hpb : p ≤ b)
+    (h : piBelow b * (rangeBound3 a b + 1 / ((a : ℚ) - 1)) < 1) : step4Crit p := by
+  refine step4Crit_of_bounds (by omega) (piBelow_mono hpb)
+    (sOrd_le_rangeBound3 hp (ha.trans hap) hap hpb) (lt_of_le_of_lt ?_ h)
   have ha1 : (0 : ℚ) < (a : ℚ) - 1 := by
-    have : (2 : ℚ) ≤ a := by exact_mod_cast ha
+    have : (5 : ℚ) ≤ a := by exact_mod_cast ha
     linarith
   have hap' : (a : ℚ) - 1 ≤ (p : ℚ) - 1 := by
     have : (a : ℚ) ≤ p := by exact_mod_cast hap
     linarith
   have hinv : 1 / ((p : ℚ) - 1) ≤ 1 / ((a : ℚ) - 1) := one_div_le_one_div_of_le ha1 hap'
-  have := rangeBound_nonneg a b
+  have := rangeBound3_nonneg a b
   have := piBelow_nonneg b
   gcongr
-
-private theorem primesBelow_37 :
-    Nat.primesBelow 37 = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31} := by decide
-
-private theorem primesBelow_43 :
-    Nat.primesBelow 43 = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41} := by decide
-
-private theorem primesBelow_61 :
-    Nat.primesBelow 61 =
-      {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59} := by decide
-
-private theorem primesBelow_97 :
-    Nat.primesBelow 97 =
-      {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
-        73, 79, 83, 89} := by decide
 
 private theorem primesBelow_251 :
     Nat.primesBelow 251 =
@@ -147,62 +130,15 @@ private theorem primesBelow_251 :
         157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233,
         239, 241} := by decide +kernel
 
-private theorem crit_37 {p : ℕ} (hp : p.Prime) (h1 : 37 ≤ p) (h2 : p ≤ 37) :
-    step4Crit p := by
-  refine step4Crit_of_range hp (by norm_num) h1 h2 ?_
-  simp only [piBelow_def, rangeBound_def, primesBelow_37, mertensProd]
-  norm_num [min_def]
-
-private theorem crit_41 {p : ℕ} (hp : p.Prime) (h1 : 41 ≤ p) (h2 : p ≤ 43) :
-    step4Crit p := by
-  refine step4Crit_of_range hp (by norm_num) h1 h2 ?_
-  simp only [piBelow_def, rangeBound_def, primesBelow_43, mertensProd]
-  norm_num [min_def]
-
-private theorem crit_47 {p : ℕ} (hp : p.Prime) (h1 : 47 ≤ p) (h2 : p ≤ 61) :
-    step4Crit p := by
-  refine step4Crit_of_range hp (by norm_num) h1 h2 ?_
-  simp only [piBelow_def, rangeBound_def, primesBelow_61, mertensProd]
-  norm_num [min_def]
-
-private theorem crit_67 {p : ℕ} (hp : p.Prime) (h1 : 67 ≤ p) (h2 : p ≤ 97) :
-    step4Crit p := by
-  refine step4Crit_of_range hp (by norm_num) h1 h2 ?_
-  simp only [piBelow_def, rangeBound_def, primesBelow_97, mertensProd]
-  norm_num [min_def]
-
-private theorem crit_101 {p : ℕ} (hp : p.Prime) (h1 : 101 ≤ p) (h2 : p ≤ 251) :
-    step4Crit p := by
-  refine step4Crit_of_range hp (by norm_num) h1 h2 ?_
-  simp only [piBelow_def, rangeBound_def, primesBelow_251, mertensProd]
-  norm_num [min_def]
-
-/-- **The criterion at every prime `37 ≤ p ≤ 255`**: no prime lies in
-`(37, 41)`, `(43, 47)`, `(61, 67)`, `(97, 101)` or `(251, 255]`. -/
+/-- **The criterion at every prime `37 ≤ p ≤ 255`**: one certificate,
+`Π₂₅₁·(rangeBound3 37 251 + 1/36) < 0.925`, using `ord_p q ≥ 3`; no prime lies
+in `(251, 255]`. -/
 theorem step4Crit_of_mid {p : ℕ} (hp : p.Prime) (h37 : 37 ≤ p) (h255 : p ≤ 255) :
     step4Crit p := by
-  rcases le_or_gt p 37 with h | h
-  · exact crit_37 hp h37 h
-  rcases le_or_gt p 43 with h' | h'
-  · refine crit_41 hp ?_ h'
-    rcases Nat.lt_or_ge p 41 with hlt | hge
-    · interval_cases p <;> norm_num at hp
-    · exact hge
-  rcases le_or_gt p 61 with h'' | h''
-  · refine crit_47 hp ?_ h''
-    rcases Nat.lt_or_ge p 47 with hlt | hge
-    · interval_cases p <;> norm_num at hp
-    · exact hge
-  rcases le_or_gt p 97 with h₃ | h₃
-  · refine crit_67 hp ?_ h₃
-    rcases Nat.lt_or_ge p 67 with hlt | hge
-    · interval_cases p <;> norm_num at hp
-    · exact hge
-  rcases le_or_gt p 251 with h₄ | h₄
-  · refine crit_101 hp ?_ h₄
-    rcases Nat.lt_or_ge p 101 with hlt | hge
-    · interval_cases p <;> norm_num at hp
-    · exact hge
+  rcases le_or_gt p 251 with h | h
+  · refine step4Crit_of_range3 hp (by norm_num) h37 h ?_
+    simp only [piBelow_def, rangeBound3_def, primesBelow_251, mertensProd]
+    norm_num [min_def]
   · interval_cases p <;> norm_num at hp
 
 /-! ### The wheel -/

@@ -268,6 +268,74 @@ theorem sOrd_le_rangeBound {a b p : ℕ} (hp : p.Prime) (hap : a ≤ p) (hpb : p
     sOrd p ≤ rangeBound a b :=
   (sOrd_le_rangeBound_self hp).trans (rangeBound_mono hap hpb)
 
+/-! ### Exponent three
+
+For `p ≥ 5` every prime `q < p` has `ord_p q ≥ 3`: order two would put
+`p ∣ (q−1)(q+1)`, hence `q = p − 1`, which is even and at least `4`.  So `q⁻²`
+in `rangeBound` can be replaced by `q⁻³`, and one certificate then covers all
+of `[37, 251]` (`solvable-herzog-schonheim-review.md` §3). -/
+
+/-- `ord_p q ≥ 3` for a prime `q < p` when `p ≥ 5`. -/
+theorem three_le_ordMod {p q : ℕ} (hp : p.Prime) (h5 : 5 ≤ p) (hq : q.Prime) (hqp : q < p) :
+    3 ≤ ordMod p q := by
+  have : Fact p.Prime := ⟨hp⟩
+  have h2 := two_le_ordMod hp hq hqp
+  by_contra hlt
+  have hord : ordMod p q = 2 := by omega
+  have h1 : ((q : ℕ) : ZMod p) ^ 2 = 1 := by rw [← hord]; exact pow_orderOf_eq_one _
+  have h3 : ((q - 1 : ℕ) : ZMod p) * ((q + 1 : ℕ) : ZMod p) = 0 := by
+    rw [Nat.cast_sub hq.one_lt.le]
+    push_cast
+    linear_combination h1
+  rcases mul_eq_zero.mp h3 with h | h
+  · have hd := (ZMod.natCast_eq_zero_iff _ _).mp h
+    have := Nat.le_of_dvd (by have := hq.two_le; omega) hd
+    omega
+  · have hd := (ZMod.natCast_eq_zero_iff _ _).mp h
+    have hle := Nat.le_of_dvd (by omega) hd
+    obtain ⟨k, hk⟩ := hp.odd_of_ne_two (by omega)
+    have hq2 : q = 2 := hq.even_iff.mp ⟨k, by omega⟩
+    omega
+
+/-- `∑_{q < b} min(q⁻³, (a+1)⁻¹)`: an upper bound for `S_p` valid for every
+prime `p` with `5 ≤ a ≤ p ≤ b`. -/
+noncomputable def rangeBound3 (a b : ℕ) : ℚ :=
+  ∑ q ∈ b.primesBelow, min (((q : ℚ) ^ 3)⁻¹) (((a : ℚ) + 1)⁻¹)
+
+theorem rangeBound3_def (a b : ℕ) :
+    rangeBound3 a b = ∑ q ∈ b.primesBelow, min (((q : ℚ) ^ 3)⁻¹) (((a : ℚ) + 1)⁻¹) :=
+  rfl
+
+theorem rangeBound3_nonneg (a b : ℕ) : 0 ≤ rangeBound3 a b :=
+  Finset.sum_nonneg fun q _ ↦ le_min (by positivity) (by positivity)
+
+/-- `S_p ≤ rangeBound3 a b` for every prime `p` in `[a, b]` with `5 ≤ p`. -/
+theorem sOrd_le_rangeBound3 {a b p : ℕ} (hp : p.Prime) (h5 : 5 ≤ p) (hap : a ≤ p)
+    (hpb : p ≤ b) : sOrd p ≤ rangeBound3 a b := by
+  have hcut : ((p : ℚ) + 1)⁻¹ ≤ ((a : ℚ) + 1)⁻¹ := by
+    have hle : (a : ℚ) + 1 ≤ (p : ℚ) + 1 := by
+      have : (a : ℚ) ≤ (p : ℚ) := by exact_mod_cast hap
+      linarith
+    rw [inv_le_inv₀ (by positivity) (by positivity)]
+    exact hle
+  rw [sOrd_def, rangeBound3_def]
+  refine (Finset.sum_le_sum fun q hq ↦ ?_).trans
+    (Finset.sum_le_sum_of_subset_of_nonneg (primesBelow_mono hpb)
+      fun q _ _ ↦ le_min (by positivity) (by positivity))
+  have hqpr := Nat.prime_of_mem_primesBelow hq
+  have hqp := Nat.lt_of_mem_primesBelow hq
+  have hq1 : (1 : ℚ) ≤ (q : ℚ) := by exact_mod_cast hqpr.one_lt.le
+  have hpow : (0 : ℚ) < (q : ℚ) ^ ordMod p q := by positivity
+  refine le_min ?_ (le_trans ?_ hcut)
+  · have h3 : (q : ℚ) ^ 3 ≤ (q : ℚ) ^ ordMod p q :=
+      pow_le_pow_right₀ hq1 (three_le_ordMod hp h5 hqpr hqp)
+    rw [inv_le_inv₀ hpow (by positivity)]
+    exact h3
+  · have hn : (p + 1 : ℕ) ≤ q ^ ordMod p q := lt_pow_ordMod hp hqpr hqp
+    have hge : (p : ℚ) + 1 ≤ (q : ℚ) ^ ordMod p q := by exact_mod_cast hn
+    rw [inv_le_inv₀ hpow (by positivity)]
+    exact hge
+
 /-! ### The bridge to `M_G′`
 
 `MassForm.MG G p` is `mertensProd` over the primes of `|G|` other than `p`.
