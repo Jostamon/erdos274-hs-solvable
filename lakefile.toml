@@ -1,0 +1,20 @@
+name = "erdos274_hs_solvable"
+version = "0.1.0"
+defaultTargets = ["Erdos274"]
+lintDriver = "batteries/runLinter"
+
+[[lean_lib]]
+name = "Erdos274"
+roots = ["Erdos274.KnownCases.Solvable"]
+globs = ["Erdos274.+"]
+
+[leanOptions]
+pp.unicode.fun = true
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.34.0"
