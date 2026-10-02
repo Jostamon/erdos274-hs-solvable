@@ -3,8 +3,7 @@
   "solution_module": "Solution",
   "theorem_names": [
     "Erdos274.Palomar.herzog_schonheim_solvable",
-    "Erdos274.Palomar.erdos_274_solvable",
-    "Erdos274.Palomar.erdos_274_solvable_fintype"
+    "Erdos274.Palomar.erdos_274_solvable"
   ],
   "definition_names": [],
   "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"]

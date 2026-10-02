@@ -18,7 +18,8 @@ arbitrary groups; the statements below assert it for **every solvable group**,
 finite or infinite.
 
 The structure `Erdos274.Group.ExactCovering` below is, field for field, the one in
-`FormalConjectures/ErdosProblems/274.lean` (google-deepmind/formal-conjectures),
+`FormalConjectures/ErdosProblems/274.lean` of google-deepmind/formal-conjectures
+(<https://github.com/google-deepmind/formal-conjectures/blob/main/FormalConjectures/ErdosProblems/274.lean>),
 and the hypotheses and conclusions are those of the upstream `herzog_schonheim`
 and `erdos_274`, with `[Group.IsSolvable G]` added.  Under the hypotheses, `G` is
 any solvable group, `ι` any finite index type with at least two elements, and the
@@ -30,9 +31,8 @@ hypothesis `1 < ENat.card G` is kept (unused) only to match upstream.
   `Subgroup.index`.
 * `Erdos274.Palomar.erdos_274_solvable`: two of the parts have equal cardinality
   (`Cardinal.mk`), for every solvable `G`.
-* `Erdos274.Palomar.erdos_274_solvable_fintype`: the same, for finite solvable `G`
-  (the shape of upstream `erdos_274.variants.abelian` with `CommGroup` replaced
-  by solvable `Group`).
+
+The two statements are the two forms of the upstream conjecture (`herzog_schonheim`, `erdos_274`).  Literature status, including what was already known (finite nilpotent, pyramidal, simple and symmetric groups) and the withdrawn 2019 claim for solvable groups, is in `README.md`.
 
 There are no extra assumptions, no `sorry` outside this Challenge, and no custom
 definitions other than `ExactCovering`.
@@ -76,12 +76,6 @@ theorem erdos_274_solvable {G : Type*} [Group G]
     ∃ i j, i ≠ j ∧ #(P.parts i) = #(P.parts j) := by
   sorry
 
-/-- The cardinality form for a finite solvable group. -/
-theorem erdos_274_solvable_fintype {G : Type*} [Fintype G] [Group G]
-    [Group.IsSolvable G] (hG : 1 < Fintype.card G) {ι : Type*} [Fintype ι]
-    (P : Group.ExactCovering G ι) (hι : 1 < Fintype.card ι) :
-    ∃ i j, i ≠ j ∧ #(P.parts i) = #(P.parts j) := by
-  sorry
 
 end Palomar
 

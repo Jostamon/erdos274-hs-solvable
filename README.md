@@ -58,9 +58,9 @@ Licensed under the Apache License 2.0 (see `LICENSE`).
 This repository is laid out for the [Palomar](https://palomar-registry.org) registry.
 
 - `Challenge.lean`: the audited statement. It imports Mathlib only and restates the
-  exact-covering structure `Erdos274.Group.ExactCovering` verbatim; its three theorems
-  (`Erdos274.Palomar.herzog_schonheim_solvable`, `erdos_274_solvable`,
-  `erdos_274_solvable_fintype`) are left as `sorry`.
+  exact-covering structure `Erdos274.Group.ExactCovering` verbatim; its theorems
+  (`Erdos274.Palomar.herzog_schonheim_solvable` and `erdos_274_solvable`)
+  are left as `sorry`.
 - `Solution.lean`: proves them from the head theorems in `Erdos274/KnownCases/Solvable.lean`.
 - `comparator.json`: the Comparator configuration pairing the two.
 - `formalization.yaml`: provenance, sources, authorship, AI involvement and limitations.
@@ -70,3 +70,32 @@ the conjecture for arbitrary groups is **not** claimed. Literature status: a sea
 2026-09-24 found no prior proof of the solvable case (the only claim, Burkhart,
 arXiv:1901.10131, was withdrawn). Novelty is unconfirmed by a specialist or MathSciNet,
 and no human expert has reviewed the proof; the Lean development is machine-checked.
+
+## Literature and status
+
+The Herzog–Schönheim conjecture (1974; Erdős problem 274) is open for arbitrary groups.
+What was known before this development, as far as the maintainer has checked:
+
+- It reduces to finite groups (B. H. Neumann 1954; Korec–Znám 1977).
+- It holds for finite nilpotent groups (Berger–Felzenbaum–Fraenkel, Canad. Math. Bull. 29, 1986)
+  and for pyramidal groups, which include supersolvable groups (Berger–Felzenbaum–Fraenkel,
+  Fund. Math. 128, 1987); for groups with a normal top Sylow subgroup and via a union bound
+  on cosets (Sun, J. Algebra 273, 2004); under prime-factor conditions (Ginosar–Schnabel 2011);
+  for all groups of order below 1440 (Margolis–Schnabel, arXiv:1803.03569); and for simple and
+  symmetric groups (Garonzi–Margolis, arXiv:2509.25118).
+- The only claim for all solvable groups that the maintainer found, Burkhart
+  (arXiv:1901.10131), was withdrawn in 2019 because of a gap in its Lemma 1.
+
+The theorem proved here, for every solvable group, finite or infinite, is not a consequence of
+those results. A search on 2026-09-24 (arXiv, zbMATH, erdosproblems.com, the web) found no prior
+proof. MathSciNet has not been searched and no specialist has reviewed the result, so novelty is
+**unconfirmed**. The reduction to finite quotients and Sun's union bound are used; the rest of the
+argument, a least-counterexample analysis at the largest prime divisor of the order with a
+separate argument at the prime 7, is the content of this development. The Lean proof is
+machine-checked; the informal paper is not part of this repository.
+
+The statements match the formal-conjectures file
+[`FormalConjectures/ErdosProblems/274.lean`](https://github.com/google-deepmind/formal-conjectures/blob/main/FormalConjectures/ErdosProblems/274.lean),
+whose `Group.ExactCovering` structure is copied field for field; two of the compared theorems are
+its `herzog_schonheim` (index form) and `erdos_274` (cardinality form), each with
+`[Group.IsSolvable G]` added.

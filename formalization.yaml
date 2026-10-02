@@ -46,12 +46,12 @@ sources:
       M. C. Burkhart, arXiv:1901.10131v1 (2019), was withdrawn in v2 because
       of a gap in its Lemma 1. Novelty has not been confirmed by MathSciNet or
       by a specialist; treat it as unknown rather than established.
-  - title: "Group partition, factorization and the vector covering problem"
+  - title: "The Herzog–Schönheim conjecture (original statement, 1974)"
     authors:
       - "Marcel Herzog"
       - "Jochanan Schönheim"
     type: "paper"
-    id: "Canad. Math. Bull. 15 (1972)"
+    id: "cited as [HS74] in Margolis–Schnabel, arXiv:1803.03569; exact bibliographic entry unchecked"
     relationship: "background"
     note: "Source of the conjecture; it is open for arbitrary groups."
   - title: "Groups covered by finitely many cosets"
@@ -65,26 +65,83 @@ sources:
       every part of an exact covering has finite index) is used through
       Mathlib's `Subgroup.leftCoset_cover_filter_FiniteIndex` to reduce infinite
       groups to finite quotients.
-  - title: "Z.-W. Sun, uniform covers and bounds on unions of cosets"
+  - title: "Remark on the multiplicity of a partition of a group into cosets"
+    authors:
+      - "Marc A. Berger"
+      - "Alexander Felzenbaum"
+      - "Aviezri Fraenkel"
+    type: "paper"
+    id: "Fund. Math. 128 (1987) 139–144"
+    relationship: "background"
+    note: "Pyramidal groups (a chain with least-prime index at each step), which include supersolvable groups; an earlier known subcase of the solvable groups."
+  - title: "On the Herzog–Schönheim conjecture for uniform covers of groups"
     authors:
       - "Zhi-Wei Sun"
     type: "paper"
-    id: "arXiv:math/0306099"
+    id: "J. Algebra 273 (2004) 153–175; arXiv:math/0306099"
     relationship: "background"
     note: >-
-      Sun's bound on unions of cosets of subgroups, applied in a quotient, is an
-      ingredient of the finite argument; it is re-proved in this development.
+      Sun's bound on unions of cosets of subgroups (his Theorem 3.1), applied in a quotient, is an
+      ingredient of the finite argument (its scaling and union lemmas are re-proved in Lean in `Erdos274/Arithmetic/DivisorMass.lean`).
   - title: "Erdős problem 274"
     type: "web discussion"
     id: "https://www.erdosproblems.com/274"
-    location: "FormalConjectures/ErdosProblems/274.lean in github.com/google-deepmind/formal-conjectures"
+    location: "https://github.com/google-deepmind/formal-conjectures/blob/main/FormalConjectures/ErdosProblems/274.lean"
     relationship: "background"
     note: >-
       The statements are in the exact shape of the formal-conjectures file for
       this problem, with `[Group.IsSolvable G]` added.
 
+  - title: "The Herzog–Schönheim conjecture for simple and symmetric groups"
+    authors:
+      - "Martino Garonzi"
+      - "Leo Margolis"
+    type: "paper"
+    id: "arXiv:2509.25118"
+    relationship: "background"
+    note: >-
+      Proves the conjecture for simple and symmetric groups; this is a different class from the solvable groups here, and the paper is not used in the Lean proof.
+  - title: "The Herzog–Schönheim conjecture for finite nilpotent groups"
+    authors:
+      - "Marc A. Berger"
+      - "Alexander Felzenbaum"
+      - "Aviezri Fraenkel"
+    type: "paper"
+    id: "Canad. Math. Bull. 29 (1986) 329–333"
+    relationship: "background"
+    note: >-
+      Finite nilpotent groups. The pyramidal groups (including supersolvable
+      groups) are covered by the next entry. Both are earlier known solvable
+      subcases; the Lean proof does not use them.
+  - title: "Prime factorization conditions providing multiplicities in coset partitions of groups"
+    authors:
+      - "Yuval Ginosar"
+      - "Ofir Schnabel"
+    type: "paper"
+    id: "J. Comb. Number Theory 3 (2011) 75–86"
+    relationship: "background"
+    note: "Conditions on the primes dividing |G|; the solvable case here needs none of them."
+  - title: "The Herzog–Schönheim conjecture for small groups and harmonic subgroups"
+    authors:
+      - "Leo Margolis"
+      - "Ofir Schnabel"
+    type: "paper"
+    id: "arXiv:1803.03569"
+    relationship: "background"
+    note: "The conjecture holds for all groups of order below 1440."
+  - title: "The Herzog–Schönheim conjecture for solvable groups (withdrawn)"
+    authors:
+      - "M. C. Burkhart"
+    type: "paper"
+    id: "arXiv:1901.10131"
+    relationship: "background"
+    note: >-
+      The only claim of this result in the literature that the maintainer is
+      aware of; withdrawn in v2 (2019-03-01) because of a gap in its Lemma 1.
+      It is not a source for the present proof and its status is unrelated to it.
+
 related_formalizations:
-  - id: "google-deepmind/formal-conjectures:FormalConjectures/ErdosProblems/274.lean"
+  - id: "https://github.com/google-deepmind/formal-conjectures/blob/main/FormalConjectures/ErdosProblems/274.lean"
     relationship: "other"
     note: >-
       Statement-only file (with `sorry`) for the general conjecture. The
@@ -94,8 +151,8 @@ related_formalizations:
 status:
   scope: >-
     The Comparator claim is the Herzog–Schönheim conjecture for every solvable
-    group (finite or infinite): index form, cardinality form, and cardinality
-    form for finite groups. It does not claim the conjecture for arbitrary
+    group (finite or infinite): index form and cardinality form.
+    It does not claim the conjecture for arbitrary
     groups. The hypothesis `1 < ENat.card G` is kept, unused, to match the
     upstream statement.
   sorry_count: 0
@@ -117,11 +174,6 @@ status:
       axioms: ["propext", "Classical.choice", "Quot.sound"]
       comparator_config: "comparator.json"
       literature_dependencies: []
-    - declaration: "Erdos274.Palomar.erdos_274_solvable_fintype"
-      file: "Challenge.lean"
-      sorry_count: 0
-      axioms: ["propext", "Classical.choice", "Quot.sound"]
-      comparator_config: "comparator.json"
       literature_dependencies: []
 
 automation:
@@ -179,11 +231,6 @@ alignment:
       lean: "Erdos274.Palomar.erdos_274_solvable"
       module: "Challenge.lean and Solution.lean"
       status: "proved"
-    - source: "Erdős problem 274, finite solvable case (cardinality form)"
-      lean: "Erdos274.Palomar.erdos_274_solvable_fintype"
-      module: "Challenge.lean and Solution.lean"
-      status: "proved"
-
 acknowledgements: >-
   The development uses Lean 4 and Mathlib. AI systems (Claude, OpenAI Codex)
   contributed to the formalization and its review.
