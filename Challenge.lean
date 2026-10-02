@@ -11,17 +11,20 @@ public import Mathlib.SetTheory.Cardinal.Finite
 # The Herzog–Schönheim conjecture for solvable groups
 
 An *exact covering* of a group `G` is a partition of `G` into finitely many left
-cosets `g_i H_i` of subgroups `H_i`.  The **Herzog–Schönheim conjecture** (Erdős
-problem 274) asserts that if there are at least two cosets, then two of the
-subgroups `H_i`, `H_j` (`i ≠ j`) have the same index.  The conjecture is open for
-arbitrary groups; the statements below assert it for **every solvable group**,
-finite or infinite.
+cosets `g_i H_i` of subgroups `H_i`.  The **Herzog–Schönheim conjecture** asserts that
+if there are at least two cosets, then two of the subgroups `H_i`, `H_j` (`i ≠ j`)
+have the same index.  The conjecture is open for arbitrary groups; the statements
+below assert it for **every solvable group**, finite or infinite.  Erdős problem 274
+asks the weaker, cardinality form (two of the subgroups have the same cardinality),
+which follows from the index form.
 
 The structure `Erdos274.Group.ExactCovering` below is, field for field, the one in
 `FormalConjectures/ErdosProblems/274.lean` of google-deepmind/formal-conjectures
 (<https://github.com/google-deepmind/formal-conjectures/blob/main/FormalConjectures/ErdosProblems/274.lean>),
-and the hypotheses and conclusions are those of the upstream `herzog_schonheim`
-and `erdos_274`, with `[Group.IsSolvable G]` added.  Under the hypotheses, `G` is
+and the hypotheses and conclusions are those of the upstream `herzog_schonheim` (index form)
+and of the conclusion of `erdos_274` and `erdos_274.variants.abelian` (cardinality form; upstream
+`erdos_274` is phrased as an `answer(sorry) ↔ ∃ …` existence statement, its negation is our
+conclusion), with `[Group.IsSolvable G]` added.  Under the hypotheses, `G` is
 any solvable group, `ι` any finite index type with at least two elements, and the
 hypothesis `1 < ENat.card G` is kept (unused) only to match upstream.
 
@@ -32,7 +35,7 @@ hypothesis `1 < ENat.card G` is kept (unused) only to match upstream.
 * `Erdos274.Palomar.erdos_274_solvable`: two of the parts have equal cardinality
   (`Cardinal.mk`), for every solvable `G`.
 
-The two statements are the two forms of the upstream conjecture (`herzog_schonheim`, `erdos_274`).  Literature status, including what was already known (finite nilpotent, pyramidal, simple and symmetric groups) and the withdrawn 2019 claim for solvable groups, is in `README.md`.
+The first is the Herzog–Schönheim conjecture (index form) and the second is Erdős problem 274 (cardinality form), each restricted to solvable groups.  Literature status, including what was already known (finite nilpotent, pyramidal, simple and symmetric groups) and the withdrawn 2019 claim for solvable groups, is in `README.md`.
 
 There are no extra assumptions, no `sorry` outside this Challenge, and no custom
 definitions other than `ExactCovering`.
@@ -67,7 +70,7 @@ theorem herzog_schonheim_solvable {G : Type*} [Group G]
     ∃ i j, i ≠ j ∧ (P.parts i).index = (P.parts j).index := by
   sorry
 
-/-- **Herzog–Schönheim for solvable groups**, cardinality form (Erdős problem 274): in an exact
+/-- **Herzog–Schönheim for solvable groups**, cardinality form (the form asked in Erdős problem 274): in an exact
 covering of a solvable group `G` by at least two cosets, two distinct parts have the same
 cardinality. -/
 theorem erdos_274_solvable {G : Type*} [Group G]

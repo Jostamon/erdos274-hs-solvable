@@ -4,7 +4,8 @@ version: "v0.4"
 project:
   name: "The Herzog–Schönheim conjecture for solvable groups"
   description: >-
-    A Lean 4 formalization of the Herzog–Schönheim conjecture (Erdős problem 274)
+    A Lean 4 formalization of the Herzog–Schönheim conjecture (the index form, which
+    implies the cardinality form asked in Erdős problem 274)
     for every solvable group, finite or infinite: if a solvable group is
     partitioned into finitely many, and at least two, left cosets of subgroups,
     then two of the subgroups have the same index (hence, in the cardinality

@@ -1,7 +1,7 @@
 # Herzog–Schönheim for solvable groups, in Lean 4
 
 A Lean 4/mathlib formalisation of the **Herzog–Schönheim conjecture for every solvable
-group**, finite or infinite (Erdős problem 274). The conjecture for arbitrary groups
+group**, finite or infinite (and its consequence, the cardinality form of Erdős problem 274). The conjecture for arbitrary groups
 remains open.
 
 The theorem: if a solvable group is partitioned into finitely many left cosets of
@@ -73,7 +73,7 @@ and no human expert has reviewed the proof; the Lean development is machine-chec
 
 ## Literature and status
 
-The Herzog–Schönheim conjecture (1974; Erdős problem 274) is open for arbitrary groups.
+The Herzog–Schönheim conjecture (1974) is open for arbitrary groups.
 What was known before this development, as far as the maintainer has checked:
 
 - It reduces to finite groups (B. H. Neumann 1954; Korec–Znám 1977).
@@ -96,6 +96,8 @@ machine-checked; the informal paper is not part of this repository.
 
 The statements match the formal-conjectures file
 [`FormalConjectures/ErdosProblems/274.lean`](https://github.com/google-deepmind/formal-conjectures/blob/main/FormalConjectures/ErdosProblems/274.lean),
-whose `Group.ExactCovering` structure is copied field for field; two of the compared theorems are
-its `herzog_schonheim` (index form) and `erdos_274` (cardinality form), each with
+whose `Group.ExactCovering` structure is copied field for field. The index-form theorem is the
+upstream `herzog_schonheim` with `[Group.IsSolvable G]` added; the cardinality-form theorem has the
+conclusion of upstream `erdos_274` (Erdős problem 274, which asks for equal cardinality and follows
+from equal index) and of `erdos_274.variants.abelian`, with
 `[Group.IsSolvable G]` added.
