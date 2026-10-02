@@ -3,8 +3,11 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Mathlib.Data.Nat.Totient
-import Mathlib.Algebra.Order.Star.Basic
+module
+
+public import Mathlib.Data.Nat.Totient
+public import Mathlib.Algebra.Order.Star.Basic
+
 
 /-!
 # Totient bounds for the Herzog–Schönheim conjecture, abelian case
@@ -17,6 +20,8 @@ Two arithmetic ingredients of the Berger–Felzenbaum–Fraenkel argument
 * `Erdos274.sum_totient_biUnion_le`: regrouping a totient sum over the
   divisors of the numbers `m j * p ^ a j` (with `p ∤ m j`) by `p`-free part.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

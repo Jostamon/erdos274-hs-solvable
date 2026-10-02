@@ -3,13 +3,16 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.FiniteGroup.MinimalNormal
-import Mathlib.GroupTheory.PGroup
-import Mathlib.GroupTheory.Sylow
-import Mathlib.GroupTheory.Commutator.Basic
-import Mathlib.GroupTheory.GroupAction.ConjAct
-import Mathlib.GroupTheory.Solvable
-import Mathlib.Algebra.Field.ZMod
+module
+
+public import Erdos274.FiniteGroup.MinimalNormal
+public import Mathlib.GroupTheory.PGroup
+public import Mathlib.GroupTheory.Sylow
+public import Mathlib.GroupTheory.Commutator.Basic
+public import Mathlib.GroupTheory.GroupAction.ConjAct
+public import Mathlib.GroupTheory.Solvable
+public import Mathlib.Algebra.Field.ZMod
+
 
 /-!
 # (CB), the cyclotomic block lemma
@@ -39,6 +42,8 @@ permutation groups (Robinson 7.2.6) nor `GL(a,q)`.
     is normal of `p′`-index, so `N = H` by `IsPResidual`, contradicting `N ≤ M`.
   - `q ∣ [H : M] ∣ |H|`, and `q ≠ p` because `[H : M] ∣ [H : Y]`.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

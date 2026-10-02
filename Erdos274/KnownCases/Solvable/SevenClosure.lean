@@ -3,7 +3,10 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Solvable.ApexCharging
+module
+
+public import Erdos274.KnownCases.Solvable.ApexCharging
+
 
 /-!
 # The apex-charging criterion (D98 §14), in general
@@ -44,6 +47,8 @@ It is an inequality between numbers built from the ratios alone.
 3. The two Lemma O union bounds force the apexes to carry mass.
 4. The charging lemma makes the defect `𝒟` pay for the apexes it absorbs.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

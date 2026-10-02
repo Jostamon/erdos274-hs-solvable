@@ -3,11 +3,14 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Mathlib.Algebra.Group.Hom.Basic
-import Mathlib.GroupTheory.GroupAction.ConjAct
-import Mathlib.GroupTheory.PGroup
-import Mathlib.GroupTheory.Solvable
-import Mathlib.Order.Preorder.Finite
+module
+
+public import Mathlib.Algebra.Group.Hom.Basic
+public import Mathlib.GroupTheory.GroupAction.ConjAct
+public import Mathlib.GroupTheory.PGroup
+public import Mathlib.GroupTheory.Solvable
+public import Mathlib.Order.Preorder.Finite
+
 
 /-! # Elementary-abelian minimal normal subgroups
 
@@ -23,6 +26,8 @@ General finite group theory:
   between normal subgroups `N < V` with nothing normal strictly between,
   stated in `G` (`vᵖ ∈ N`, and `V` commutes modulo `N`).
 -/
+
+@[expose] public section
 
 open scoped IsMulCommutative
 

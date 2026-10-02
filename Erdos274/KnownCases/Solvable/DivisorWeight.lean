@@ -3,9 +3,12 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Solvable.ApexCharging
-import Erdos274.KnownCases.Solvable.GeometricShadow.UpSet
-import Mathlib.Data.Nat.Totient
+module
+
+public import Erdos274.KnownCases.Solvable.ApexCharging
+public import Erdos274.KnownCases.Solvable.GeometricShadow.UpSet
+public import Mathlib.Data.Nat.Totient
+
 
 /-!
 # Lemma O in the untruncated weight
@@ -37,6 +40,8 @@ exponent vector is `vec q d`, with `vᵢ(d) = v_{qᵢ}(d)`.
 No constant enters: `Π` is `W_univ`, and `φ` comes from
 `Nat.totient_eq_mul_prod_factors`.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

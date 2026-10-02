@@ -3,8 +3,11 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Solvable.SevenJoin
-import Erdos274.KnownCases.Solvable.HallRestriction
+module
+
+public import Erdos274.KnownCases.Solvable.SevenJoin
+public import Erdos274.KnownCases.Solvable.HallRestriction
+
 
 /-!
 # Coprime cells meet: the 7-chamber and the separation of exact fibres
@@ -33,6 +36,8 @@ Consequences for `SevenJoin.false_of_covering`:
 exact-7 half of `hch` discharged.  What is left is (CB) and the exact-8
 chamber, stated with the `2 ∣ ℓ` this file already provides.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

@@ -3,9 +3,12 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon, Claude Opus 5, OpenAI GPT-5.6 Sol Codex
 -/
-import Erdos274.Arithmetic.Efficiency
-import Mathlib.NumberTheory.PrimeCounting
-import Mathlib.FieldTheory.Finite.Basic
+module
+
+public import Erdos274.Arithmetic.Efficiency
+public import Mathlib.NumberTheory.PrimeCounting
+public import Mathlib.FieldTheory.Finite.Basic
+
 
 /-!
 # `Π_p` and `S_p` from the multiplicative order
@@ -34,6 +37,8 @@ so that this file does not depend on the general linear group.
 
 No research axiom occurs in this file.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

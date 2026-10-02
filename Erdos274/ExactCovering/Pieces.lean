@@ -3,12 +3,17 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.ExactCovering.Cells
-import Mathlib.GroupTheory.Index
-import Mathlib.GroupTheory.QuotientGroup.Basic
-import Mathlib.GroupTheory.QuotientGroup.Finite
+module
+
+public import Erdos274.ExactCovering.Cells
+public import Mathlib.GroupTheory.Index
+public import Mathlib.GroupTheory.QuotientGroup.Basic
+public import Mathlib.GroupTheory.QuotientGroup.Finite
+
 
 /-! # Exact-covering cells restricted to quotient cosets -/
+
+@[expose] public section
 
 namespace Erdos274
 

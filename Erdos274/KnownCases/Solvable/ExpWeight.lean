@@ -3,9 +3,13 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Mathlib.Analysis.SpecificLimits.Basic
-import Mathlib.Data.Fin.Tuple.Basic
-import Mathlib.Algebra.BigOperators.Fin
+module
+
+public import Mathlib.Analysis.SpecificLimits.Basic
+public import Mathlib.Data.Fin.Tuple.Basic
+public import Mathlib.Algebra.BigOperators.Fin
+public import Mathlib.Algebra.Order.Group.Indicator
+
 
 /-!
 # The untruncated product-geometric weight on `ι → ℕ`
@@ -34,6 +38,8 @@ exact-covering language.
 
 This file imports only `Mathlib.*`.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

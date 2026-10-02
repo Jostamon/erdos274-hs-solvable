@@ -3,23 +3,26 @@ Copyright (c) 2026 Erdos 274 Agentic contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Erdos 274 Agentic contributors
 -/
-import Erdos274.Defs
-import Mathlib.Algebra.GCDMonoid.FinsetLemmas
-import Mathlib.Algebra.Group.Pointwise.Set.Card
-import Mathlib.Algebra.Group.Subgroup.Finite
-import Mathlib.Data.Fintype.EquivFin
-import Mathlib.Data.Nat.Cast.Field
-import Mathlib.Data.Nat.Prime.Defs
-import Mathlib.Data.Set.Card.Arithmetic
-import Mathlib.Data.Set.Pairwise.Lattice
-import Mathlib.GroupTheory.Coset.Card
-import Mathlib.GroupTheory.CosetCover
-import Mathlib.GroupTheory.GroupAction.Blocks
-import Mathlib.GroupTheory.GroupAction.Primitive
-import Mathlib.GroupTheory.PGroup
-import Mathlib.GroupTheory.QuotientGroup.Basic
-import Mathlib.SetTheory.Cardinal.Arithmetic
-import Mathlib.Tactic.Linarith
+module
+
+public import Erdos274.Defs
+public import Mathlib.Algebra.GCDMonoid.FinsetLemmas
+public import Mathlib.Algebra.Group.Pointwise.Set.Card
+public import Mathlib.Algebra.Group.Subgroup.Finite
+public import Mathlib.Data.Fintype.EquivFin
+public import Mathlib.Data.Nat.Cast.Field
+public import Mathlib.Data.Nat.Prime.Defs
+public import Mathlib.Data.Set.Card.Arithmetic
+public import Mathlib.Data.Set.Pairwise.Lattice
+public import Mathlib.GroupTheory.Coset.Card
+public import Mathlib.GroupTheory.CosetCover
+public import Mathlib.GroupTheory.GroupAction.Blocks
+public import Mathlib.GroupTheory.GroupAction.Primitive
+public import Mathlib.GroupTheory.PGroup
+public import Mathlib.GroupTheory.QuotientGroup.Basic
+public import Mathlib.SetTheory.Cardinal.Arithmetic
+public import Mathlib.Tactic.Linarith
+
 /-!
 # Finite-index structure of exact coset coverings
 
@@ -47,6 +50,8 @@ one-cell and nontrivial exact coverings.
 * `Group.ExactCovering.part_eq_top_of_card_eq_one`
 * `Group.ExactCovering.part_ne_top_of_one_lt_card`
 -/
+
+@[expose] public section
 universe u v
 
 open scoped Cardinal Pointwise

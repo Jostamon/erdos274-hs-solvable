@@ -3,7 +3,10 @@ Copyright (c) 2026 Erdos 274 Agentic contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Erdos 274 Agentic contributors
 -/
-import Erdos274.ExactCovering.Quotient
+module
+
+public import Erdos274.ExactCovering.Quotient
+
 /-!
 # Cardinality properties of exact coset coverings
 
@@ -31,6 +34,8 @@ part cardinality is automatic for every nontrivial finite exact covering.
 * `cardinalMk_subgroup_eq_of_finiteIndex`
 * `exactCovering_exists_equal_cardinalMk_of_infinite`
 -/
+
+@[expose] public section
 universe u v
 open scoped BigOperators Cardinal Pointwise
 namespace Erdos274

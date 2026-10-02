@@ -3,13 +3,16 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Mathlib.Algebra.Group.Pointwise.Set.Card
-import Erdos274.Counting.FiniteFibers
-import Mathlib.Data.Nat.Factorization.Basic
-import Mathlib.GroupTheory.Perm.Cycle.Type
-import Mathlib.GroupTheory.QuotientGroup.Basic
-import Mathlib.GroupTheory.Sylow
-import Mathlib.Order.BourbakiWitt
+module
+
+public import Mathlib.Algebra.Group.Pointwise.Set.Card
+public import Erdos274.Counting.FiniteFibers
+public import Mathlib.Data.Nat.Factorization.Basic
+public import Mathlib.GroupTheory.Perm.Cycle.Type
+public import Mathlib.GroupTheory.QuotientGroup.Basic
+public import Mathlib.GroupTheory.Sylow
+public import Mathlib.Order.BourbakiWitt
+
 
 /-!
 # Coset-counting lemmas in a finite group
@@ -27,6 +30,8 @@ for finite nilpotent groups (see `docs/erdos274/known-cases/BLUEPRINT.md`).
 * `Erdos274.ncard_eq_card_mul_ncard_image`: a `P`-saturated set has
   `|P| · |image|` elements.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

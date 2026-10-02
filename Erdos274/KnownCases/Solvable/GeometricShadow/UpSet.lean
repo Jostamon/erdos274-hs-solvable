@@ -3,10 +3,15 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.Arithmetic.DivisorMass
-import Mathlib.NumberTheory.Divisors
+module
+
+public import Erdos274.Arithmetic.DivisorMass
+public import Mathlib.NumberTheory.Divisors
+
 
 /-! # Divisor-closed events for truncated geometric weights -/
+
+@[expose] public section
 
 namespace Erdos274
 namespace GeometricShadow

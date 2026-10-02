@@ -3,12 +3,17 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.ExactCovering.Pieces
-import Erdos274.KnownCases.Solvable.OrbitUnionBound
-import Mathlib.GroupTheory.QuotientGroup.Basic
-import Mathlib.GroupTheory.Index
+module
+
+public import Erdos274.ExactCovering.Pieces
+public import Erdos274.KnownCases.Solvable.OrbitUnionBound
+public import Mathlib.GroupTheory.QuotientGroup.Basic
+public import Mathlib.GroupTheory.Index
+
 
 /-! # Basic quotient-shadow geometry and divisor mass -/
+
+@[expose] public section
 
 namespace Erdos274
 

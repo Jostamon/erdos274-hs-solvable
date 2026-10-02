@@ -3,10 +3,13 @@ Copyright (c) 2026 Erdos 274 Agentic contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Erdos 274 Agentic contributors
 -/
-import Erdos274.ExactCovering.Cardinality
-import Erdos274.ExactCovering.Fibers
-import Mathlib.Algebra.BigOperators.Ring.Finset
-import Mathlib.Tactic.NormNum
+module
+
+public import Erdos274.ExactCovering.Cardinality
+public import Erdos274.ExactCovering.Fibers
+public import Mathlib.Algebra.BigOperators.Ring.Finset
+public import Mathlib.Tactic.NormNum
+
 /-!
 # Counting and volume identities for exact coset coverings
 
@@ -36,6 +39,8 @@ as an equivalence between the ambient group and the sigma type of its subgroup p
 * `fiberCover_sum_inv_index`
 * `Group.ExactCovering.cellEquiv_apply`
 -/
+
+@[expose] public section
 universe u v
 open scoped BigOperators Cardinal Pointwise
 namespace Erdos274

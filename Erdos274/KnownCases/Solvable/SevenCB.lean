@@ -3,7 +3,10 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Solvable.ExactEight
+module
+
+public import Erdos274.KnownCases.Solvable.ExactEight
+
 
 /-!
 # (CB) for the parts of a covering, and the `p = 7` closure
@@ -23,6 +26,8 @@ the setting and makes no new claim.
   primes `q` are `2`, `3` and `5`, because `q ∣ |G|`, `q ≤ 7` and `q ≠ 7`.
   No group-theoretic input is left as a hypothesis.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

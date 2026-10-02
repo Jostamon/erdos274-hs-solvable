@@ -3,13 +3,18 @@ Copyright (c) 2026 Erdos 274 Agentic contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Erdos 274 Agentic contributors
 -/
-import Erdos274.ExactCovering.Quotient
+module
+
+public import Erdos274.ExactCovering.Quotient
+
 /-!
 # Finite-index properties of exact coverings
 
 Basic finite-index and counting results for the subgroups occurring in a finite exact
 coset covering.
 -/
+
+@[expose] public section
 universe u v
 open scoped Cardinal Pointwise
 namespace Erdos274

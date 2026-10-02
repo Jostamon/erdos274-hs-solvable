@@ -2,10 +2,15 @@
 Copyright (c) 2026 Erdos 274 Agentic contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
-import Erdos274.Defs
-import Mathlib.GroupTheory.Index
+module
+
+public import Erdos274.Defs
+public import Mathlib.GroupTheory.Index
+
 
 /-! # Herzog--Schönheim statements shared by proof modules -/
+
+@[expose] public section
 
 universe u v
 namespace Erdos274

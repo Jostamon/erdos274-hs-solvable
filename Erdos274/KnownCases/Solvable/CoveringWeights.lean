@@ -3,11 +3,16 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Solvable.DivisorWeight
-import Erdos274.KnownCases.Solvable.QuotientShadow.Basic
-import Mathlib.Algebra.BigOperators.Field
+module
+
+public import Erdos274.KnownCases.Solvable.DivisorWeight
+public import Erdos274.KnownCases.Solvable.QuotientShadow.Basic
+public import Mathlib.Algebra.BigOperators.Field
+
 
 /-! # Generic covering-weight bridge used by solvable closures -/
+
+@[expose] public section
 
 namespace Erdos274
 namespace SevenJoin

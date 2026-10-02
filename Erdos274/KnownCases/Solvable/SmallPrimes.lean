@@ -3,16 +3,21 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Solvable.Chamber
-import Erdos274.KnownCases.Solvable.Step4Closure
-import Erdos274.KnownCases.Solvable.DivisorWeight
-import Erdos274.KnownCases.Solvable.Minimality
-import Erdos274.ExactCovering.FiniteIndex
-import Mathlib.Tactic.NormNum
-import Mathlib.Tactic.IntervalCases
-import Lean.Elab.Tactic.Omega
+module
+
+public import Erdos274.KnownCases.Solvable.Chamber
+public import Erdos274.KnownCases.Solvable.Step4Closure
+public import Erdos274.KnownCases.Solvable.DivisorWeight
+public import Erdos274.KnownCases.Solvable.Minimality
+public import Erdos274.ExactCovering.FiniteIndex
+public import Mathlib.Tactic.NormNum
+public import Mathlib.Tactic.IntervalCases
+public import Lean.Elab.Tactic.Omega
+
 
 /-! # The small-prime endpoint of Step 4 -/
+
+@[expose] public section
 
 namespace Erdos274
 namespace Step4

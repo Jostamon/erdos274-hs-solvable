@@ -3,9 +3,12 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Mathlib.GroupTheory.QuotientGroup.Basic
-import Mathlib.GroupTheory.Subgroup.Simple
-import Mathlib.Data.Fintype.Powerset
+module
+
+public import Mathlib.GroupTheory.QuotientGroup.Basic
+public import Mathlib.GroupTheory.Subgroup.Simple
+public import Mathlib.Data.Fintype.Powerset
+
 
 /-!
 # Maximal normal subgroups of finite groups
@@ -15,6 +18,8 @@ quotient by one is simple.  General group theory, used by the subnormal union
 bound (`KnownCases.Subnormal.UnionBound`) and by the construction of a
 prime-normal chain in a solvable group (`FiniteGroup.SolvablePrimeNormalChain`).
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

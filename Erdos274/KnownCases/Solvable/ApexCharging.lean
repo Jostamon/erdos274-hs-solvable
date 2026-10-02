@@ -3,9 +3,12 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Solvable.ExpWeight
-import Mathlib.Algebra.Order.Pi
-import Mathlib.Order.UpperLower.Closure
+module
+
+public import Erdos274.KnownCases.Solvable.ExpWeight
+public import Mathlib.Algebra.Order.Pi
+public import Mathlib.Order.UpperLower.Closure
+
 
 /-!
 # Apexes, the 2/7 defect, and the charging lemma
@@ -35,6 +38,8 @@ minimal heads) and `U = up H₀`.
 Everything here is order and arithmetic on `ι → ℕ`; the only group theory
 enters later, as hypotheses.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

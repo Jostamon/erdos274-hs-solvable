@@ -52,3 +52,21 @@ The code was developed with AI assistance (Claude and OpenAI Codex models); the
 files in the proof's import closure, so early commits may not build on their own; the tip does.
 
 Licensed under the Apache License 2.0 (see `LICENSE`).
+
+## Palomar layout
+
+This repository is laid out for the [Palomar](https://palomar-registry.org) registry.
+
+- `Challenge.lean`: the audited statement. It imports Mathlib only and restates the
+  exact-covering structure `Erdos274.Group.ExactCovering` verbatim; its three theorems
+  (`Erdos274.Palomar.herzog_schonheim_solvable`, `erdos_274_solvable`,
+  `erdos_274_solvable_fintype`) are left as `sorry`.
+- `Solution.lean`: proves them from the head theorems in `Erdos274/KnownCases/Solvable.lean`.
+- `comparator.json`: the Comparator configuration pairing the two.
+- `formalization.yaml`: provenance, sources, authorship, AI involvement and limitations.
+
+Every Lean file uses the module system. The proof assumes `[Group.IsSolvable G]` throughout;
+the conjecture for arbitrary groups is **not** claimed. Literature status: a search on
+2026-09-24 found no prior proof of the solvable case (the only claim, Burkhart,
+arXiv:1901.10131, was withdrawn). Novelty is unconfirmed by a specialist or MathSciNet,
+and no human expert has reviewed the proof; the Lean development is machine-checked.

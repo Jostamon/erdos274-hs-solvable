@@ -6,7 +6,7 @@ lintDriver = "batteries/runLinter"
 [[lean_lib]]
 name = "Erdos274"
 roots = ["Erdos274.KnownCases.Solvable"]
-globs = ["Erdos274.+"]
+globs = ["Erdos274.+", "Challenge", "Solution"]
 
 [leanOptions]
 pp.unicode.fun = true
@@ -17,4 +17,4 @@ maxSynthPendingDepth = 3
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.34.0"
+rev = "v4.35.0-rc2"

@@ -3,11 +3,14 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Solvable.SevenInstance
-import Erdos274.KnownCases.Solvable.DivisorWeight
-import Erdos274.KnownCases.Solvable.CoveringWeights
-import Erdos274.KnownCases.Solvable.QuotientShadow.Basic
-import Mathlib.Tactic.NormNum.Prime
+module
+
+public import Erdos274.KnownCases.Solvable.SevenInstance
+public import Erdos274.KnownCases.Solvable.DivisorWeight
+public import Erdos274.KnownCases.Solvable.CoveringWeights
+public import Erdos274.KnownCases.Solvable.QuotientShadow.Basic
+public import Mathlib.Tactic.NormNum.Prime
+
 
 /-!
 # The `p = 7` closure, from an exact covering
@@ -38,6 +41,8 @@ The covering side of the argument:
 exact-7 and exact-8 fibres are disjoint (`hsep`).  The index vectors come from
 `DivisorWeight.vec`.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

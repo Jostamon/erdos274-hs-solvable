@@ -3,8 +3,11 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Solvable.CoveringWeights
-import Erdos274.Arithmetic.PrimeOrder
+module
+
+public import Erdos274.KnownCases.Solvable.CoveringWeights
+public import Erdos274.Arithmetic.PrimeOrder
+
 
 /-!
 # The step-4 closure at a general prime
@@ -28,6 +31,8 @@ used is the inclusion `C_q ⊆ A ∩ B_q`.  At `p = 5` it gives `1263/1296 < 1`,
 where the plain union bound (`1781/1728`) does not close; D98 §6's caveat
 that `p = 5` needs (SNBU) is therefore withdrawn.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

@@ -3,12 +3,15 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.Arithmetic.DivisorMass
-import Mathlib.Data.Nat.Totient
-import Mathlib.Algebra.Order.Field.Rat
-import Mathlib.Tactic.FieldSimp
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Ring
+module
+
+public import Erdos274.Arithmetic.DivisorMass
+public import Mathlib.Data.Nat.Totient
+public import Mathlib.Algebra.Order.Field.Rat
+public import Mathlib.Tactic.FieldSimp
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.Ring
+
 
 /-!
 # Lemma E: the Mertens efficiency bound
@@ -28,6 +31,8 @@ That is, the efficiency `c = Σ_R s / μ(D(R))` of Lemma O is at most `M(Q)`
 
 No research axiom occurs in this file.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

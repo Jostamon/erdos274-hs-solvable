@@ -3,10 +3,13 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon, OpenAI
 -/
-import Erdos274.Statements
-import Erdos274.ExactCovering.Quotient
-import Mathlib.GroupTheory.Solvable
-import Mathlib.Algebra.Group.Subgroup.Finite
+module
+
+public import Erdos274.Statements
+public import Erdos274.ExactCovering.Quotient
+public import Mathlib.GroupTheory.Solvable
+public import Mathlib.Algebra.Group.Subgroup.Finite
+
 
 /-!
 # Solvable HS: least-order endpoint and proper-coset subpartitions
@@ -19,6 +22,8 @@ to its active parts.
 
 No research axiom occurs in this file.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

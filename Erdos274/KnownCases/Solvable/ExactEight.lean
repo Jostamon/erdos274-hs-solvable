@@ -3,8 +3,11 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Solvable.Chamber
-import Erdos274.KnownCases.Solvable.CyclotomicBlock
+module
+
+public import Erdos274.KnownCases.Solvable.Chamber
+public import Erdos274.KnownCases.Solvable.CyclotomicBlock
+
 
 /-!
 # The exact-`(p+1)` chamber
@@ -33,6 +36,8 @@ with it have `7 ∣ ℓ` or `8 ∣ ℓ`.  The paper route went through
   - In the transitive case the two cells meet (`Chamber.eq_of_meet_of_mul`),
     so the parts coincide.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

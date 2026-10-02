@@ -3,12 +3,15 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.Counting.FiniteFibers
-import Erdos274.Arithmetic.DivisorMass
-import Erdos274.FiniteGroup.PrimeNormalChain
-import Erdos274.FiniteGroup.PrimaryPart
-import Erdos274.FiniteGroup.SolvablePrimeNormalChain
-import Mathlib.GroupTheory.SpecificGroups.Cyclic
+module
+
+public import Erdos274.Counting.FiniteFibers
+public import Erdos274.Arithmetic.DivisorMass
+public import Erdos274.FiniteGroup.PrimeNormalChain
+public import Erdos274.FiniteGroup.PrimaryPart
+public import Erdos274.FiniteGroup.SolvablePrimeNormalChain
+public import Mathlib.GroupTheory.SpecificGroups.Cyclic
+
 
 /-!
 # Solvable HS: the orbit union bound (Lemma O)
@@ -43,6 +46,8 @@ The divisor arithmetic is `mass_biUnion_le_sum_mass_fiber`.
 
 No research axiom occurs in this file.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 
@@ -387,7 +392,7 @@ private theorem mass_le_ncard_iUnion_orbit_step [Finite G] [Finite Ω]
     have hdvd : q ∣ W i := ⟨w i, hcrossW i hi⟩
     have hc := stab_le_of_dvd hq (ω i) (hcop i (ω i) (mem_orbit_self _)) hdvd
     have hcb := (stab_le_iff_base hLH (ω i)).mp hc
-    obtain ⟨k₀, hk₀K, hk₀L⟩ := SetLike.not_le_iff_exists.mp hKL
+    obtain ⟨k₀, hk₀K, hk₀L⟩ := IsConcreteLE.not_le_iff_exists.mp hKL
     have hg₀ : ((⟨k₀, hK i hk₀K⟩ : H) : H ⧸ L.subgroupOf H) ≠ 1 := fun h ↦
       hk₀L ((QuotientGroup.eq_one_iff (N := L.subgroupOf H)
         (⟨k₀, hK i hk₀K⟩ : H)).mp h)

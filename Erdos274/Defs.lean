@@ -3,9 +3,12 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Mathlib.Data.Set.Card
-import Mathlib.GroupTheory.Coset.Basic
-import Mathlib.GroupTheory.QuotientGroup.Basic
+module
+
+public import Mathlib.Data.Set.Card
+public import Mathlib.GroupTheory.Coset.Basic
+public import Mathlib.GroupTheory.QuotientGroup.Basic
+
 
 -- Definitions adapted from `FormalConjectures/ErdosProblems/274.lean` in
 -- google-deepmind/formal-conjectures (Apache 2.0).
@@ -27,6 +30,8 @@ cases are proved in the sibling modules.
 * [erdosproblems.com/274](https://www.erdosproblems.com/274)
 * [Wikipedia](https://en.wikipedia.org/wiki/Herzog%E2%80%93Sch%C3%B6nheim_conjecture)
 -/
+
+@[expose] public section
 
 open scoped Pointwise
 

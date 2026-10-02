@@ -3,8 +3,11 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.Arithmetic.PrimeOrder
-import Mathlib.Tactic.NormNum.Prime
+module
+
+public import Erdos274.Arithmetic.PrimeOrder
+public import Mathlib.Tactic.NormNum.Prime
+
 
 /-!
 # The step-4 criterion `Π_p·(S_p + 1/(p−1)) < 1`: every prime `p ≥ 5` but `7`
@@ -35,6 +38,8 @@ holds with a margin of about 1% (`DECISION_LOG` D94, D95), which no elementary
 bound on `Π_p` reaches.  The order table and the range certificate are that
 finite part.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

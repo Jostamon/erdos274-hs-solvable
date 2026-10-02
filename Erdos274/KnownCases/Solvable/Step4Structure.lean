@@ -3,8 +3,11 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Solvable.CyclotomicBlock
-import Mathlib.GroupTheory.Sylow
+module
+
+public import Erdos274.KnownCases.Solvable.CyclotomicBlock
+public import Mathlib.GroupTheory.Sylow
+
 
 /-!
 # The step-4 localisation `F = O^{p′}(G)`
@@ -24,6 +27,8 @@ This replaces the earlier construction `F = KQ` with `K = [O_{p′}(G), Q]`, whi
 needed the coprime-action identity `N = [N,Q]·C_N(Q)` and the Frattini argument.
 No solvability is used here.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

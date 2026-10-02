@@ -3,12 +3,17 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Mathlib.Algebra.BigOperators.Group.Finset.Basic
-import Mathlib.Data.Fintype.Card
-import Mathlib.Data.Fintype.Basic
-import Mathlib.Data.Set.Card
+module
+
+public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+public import Mathlib.Data.Fintype.Card
+public import Mathlib.Data.Fintype.Basic
+public import Mathlib.Data.Set.Card
+
 
 /-! # Counting finite sets by fibres of a map -/
+
+@[expose] public section
 
 namespace Erdos274
 

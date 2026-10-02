@@ -3,9 +3,12 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Solvable.Step4
-import Erdos274.ExactCovering.Cardinality
-import Erdos274.ExactCovering.Quotient
+module
+
+public import Erdos274.KnownCases.Solvable.Step4
+public import Erdos274.ExactCovering.Cardinality
+public import Erdos274.ExactCovering.Quotient
+
 
 /-!
 # The Herzog–Schönheim conjecture for solvable groups
@@ -53,6 +56,8 @@ reduction library is not a dependency of this theorem.
   shape of upstream `erdos_274.variants.abelian`, with `CommGroup` replaced by
   a solvable `Group`.
 -/
+
+@[expose] public section
 
 open scoped Pointwise Cardinal
 

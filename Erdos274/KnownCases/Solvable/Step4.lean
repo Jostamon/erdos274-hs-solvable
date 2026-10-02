@@ -3,12 +3,15 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Solvable.SevenCB
-import Erdos274.KnownCases.Solvable.Step4Structure
-import Erdos274.KnownCases.Solvable.Step4Closure
-import Erdos274.KnownCases.Solvable.Step4Criterion
-import Erdos274.KnownCases.Solvable.SmallPrimes
-import Erdos274.KnownCases.Solvable.Minimality
+module
+
+public import Erdos274.KnownCases.Solvable.SevenCB
+public import Erdos274.KnownCases.Solvable.Step4Structure
+public import Erdos274.KnownCases.Solvable.Step4Closure
+public import Erdos274.KnownCases.Solvable.Step4Criterion
+public import Erdos274.KnownCases.Solvable.SmallPrimes
+public import Erdos274.KnownCases.Solvable.Minimality
+
 
 /-!
 # Step 4, and the least counterexample
@@ -36,6 +39,8 @@ every smaller solvable group.  `false_of_minimal` shows there is none.  Let
 hold when `p ∥ |G|` too.  So this also closes step 3, and `herzog_schonheim_of_solvable`
 is HS for every finite solvable group, by strong induction on `|G|`.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

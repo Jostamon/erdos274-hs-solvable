@@ -3,12 +3,15 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.KnownCases.Solvable.SevenClosure
-import Erdos274.KnownCases.Solvable.DivisorWeight
-import Erdos274.Arithmetic.PrimeOrder
-import Mathlib.Data.ZMod.Basic
-import Mathlib.GroupTheory.OrderOfElement
-import Mathlib.Tactic.NormNum.Prime
+module
+
+public import Erdos274.KnownCases.Solvable.SevenClosure
+public import Erdos274.KnownCases.Solvable.DivisorWeight
+public import Erdos274.Arithmetic.PrimeOrder
+public import Mathlib.Data.ZMod.Basic
+public import Mathlib.GroupTheory.OrderOfElement
+public import Mathlib.Tactic.NormNum.Prime
+
 
 /-!
 # The `p = 7` instance of the apex-charging criterion
@@ -30,6 +33,8 @@ its conclusion fails.  The inequality it contradicts is
 `2b + 1 + Πab² + Πab ≤ Π(ab + b² + a + b + ε)`, which reads
 `1.3379 ≤ 1.3246`.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 

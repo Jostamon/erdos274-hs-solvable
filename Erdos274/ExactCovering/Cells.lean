@@ -3,8 +3,11 @@ Copyright (c) 2026 Murali Menon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Murali Menon
 -/
-import Erdos274.Defs
-import Mathlib.Algebra.Group.Pointwise.Set.Card
+module
+
+public import Erdos274.Defs
+public import Mathlib.Algebra.Group.Pointwise.Set.Card
+
 
 /-!
 # Finite cells of an exact covering
@@ -13,6 +16,8 @@ This module collects small cell and point-union APIs.  Their historical
 namespaces (`NormaliserSlice`, `MassForm`, and `QuotientShadow`) are retained
 so downstream proofs keep their existing interfaces.
 -/
+
+@[expose] public section
 
 namespace Erdos274
 
